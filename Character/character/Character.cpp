@@ -15,10 +15,10 @@
 #include "..\player\PlayerController.h"
 #include "..\..\common_h\IStainManager.h"
 
-#define CHARACTER_DEADTIME	5.0f
-#define CHARACTER_SHOWMSGTIME	5.0f
-#define CHARACTER_BODYDISAPEAR	2.0f
-#define DEF_CAM_FOV tanf(71.619f*PI/180.0f*0.5f)
+#define CHARACTER_DEADTIME 5.0f
+#define CHARACTER_SHOWMSGTIME 5.0f
+#define CHARACTER_BODYDISAPEAR 2.0f
+#define DEF_CAM_FOV tanf(71.619f * PI / 180.0f * 0.5f)
 
 INTERFACE_FUNCTION
 
@@ -26,19 +26,20 @@ Character::CommandsTable Character::commandsTable;
 
 bool Character::g_bFreezeRagdolls = true;
 
-void Character::CommandRecord::Init(const char * sid, CharCommand cmd, CommandRecord ** entry, dword mask)
+void Character::CommandRecord::Init(const char *sid, CharCommand cmd, CommandRecord **entry, dword mask)
 {
 	id.Set(sid);
 	command = cmd;
 	next = null;
-	CommandRecord ** cr = &entry[id.Hash() & mask];
-	while(*cr) cr = &((*cr)->next);
+	CommandRecord **cr = &entry[id.Hash() & mask];
+	while (*cr)
+		cr = &((*cr)->next);
 	*cr = this;
 }
 
 Character::CommandsTable::CommandsTable()
 {
-	for(dword i = 0; i < ARRSIZE(entryTable); i++)
+	for (dword i = 0; i < ARRSIZE(entryTable); i++)
 	{
 		entryTable[i] = null;
 	}
@@ -93,28 +94,28 @@ Character::CommandsTable::CommandsTable()
 	table[47].Init("dropweapon", &Character::Cmd_dropweapon, entryTable, mask);
 }
 
-bool Character::CommandsTable::ExecuteCommand(Character * chr, const char * id, dword numParams, const char ** params)
+bool Character::CommandsTable::ExecuteCommand(Character *chr, const char *id, dword numParams, const char **params)
 {
-	if(string::IsEmpty(id)) return false;
+	if (string::IsEmpty(id))
+		return false;
 	ConstString strId(id);
 	static const dword mask = ARRSIZE(entryTable) - 1;
-	Character::CommandRecord * rec = entryTable[strId.Hash() & mask];
-	for(; rec; rec = rec->next)
+	Character::CommandRecord *rec = entryTable[strId.Hash() & mask];
+	for (; rec; rec = rec->next)
 	{
-		if(rec->id == strId)
+		if (rec->id == strId)
 		{
 			(chr->*(rec->command))(id, numParams, params);
 			return true;
-		}		
+		}
 	}
 	return false;
 }
 
-
-Character::Character() : 
-	BodyParts(_FL_, 1)
+Character::Character() : BodyParts(_FL_, 1)
 #ifndef NO_CONSOLE
-	,debugMessages(_FL_)
+						 ,
+						 debugMessages(_FL_)
 #endif
 {
 	isRealFatalityStarted = false;
@@ -137,7 +138,7 @@ Character::Character() :
 	arbiter = null;
 	logic = null;
 	items = null;
-	physics = null;	
+	physics = null;
 	ragdoll = null;
 	controller = null;
 	animation = null;
@@ -161,7 +162,7 @@ Character::Character() :
 	LastCharCoin = chrcoin_none;
 	CharCoin = chrcoin_none;
 
-	//rdData = null;
+	// rdData = null;
 
 	bColideWhenActor = false;
 
@@ -180,7 +181,7 @@ Character::Character() :
 
 	bShotImmuneWhenRoll = false;
 
-	debugInfoType = -1;	
+	debugInfoType = -1;
 
 	bShowCoinED = false;
 
@@ -208,13 +209,13 @@ Character::Character() :
 
 	BltTrace.fTime = 0.0f;
 	BltTrace.fSpeed = 35.0f;
-	BltTrace.Show  = true;
+	BltTrace.Show = true;
 
 	BltTrace.scaleV = 0.05f;
 	BltTrace.scaleH = 1.5f;
 
-	BltTrace.BulletStart = Vector(0,0,0);
-	BltTrace.BulletEnd = Vector(0,0,10);	
+	BltTrace.BulletStart = Vector(0, 0, 0);
+	BltTrace.BulletEnd = Vector(0, 0, 10);
 
 	add_color.r = add_color.g = add_color.b = 0.0f;
 
@@ -226,20 +227,19 @@ Character::Character() :
 
 	flyCloud = null;
 
-	bActorMoveColider = false;	
+	bActorMoveColider = false;
 
-	for (int i=0;i<20;i++)
+	for (int i = 0; i < 20; i++)
 	{
 		pair_minigame[i] = null;
 	}
-	
 
 	step_effectTable = null;
 	shoot_effectTable = null;
-	
+
 	chrEffect = null;
 	chrAchievements = null;
-	chrInitAI = null; 
+	chrInitAI = null;
 	mg_params = null;
 	common_mg_params = null;
 
@@ -275,7 +275,6 @@ Character::Character() :
 
 	useRootBone = false;
 
-
 	set_new_ay = false;
 	new_ay = 0.0f;
 
@@ -286,7 +285,6 @@ Character::Character() :
 	pgw_start_node = "";
 	pgw_blend_time = 0.2f;
 	pgw_victim = null;
-
 
 	fDistShadow = 0.0f;
 
@@ -317,24 +315,25 @@ Character::~Character()
 //============================================================================================
 
 //Инициализировать объект
-bool Character::Create(MOPReader & reader)
+bool Character::Create(MOPReader &reader)
 {
-	Registry(GroupId('C','h','G','R'));
+	Registry(GroupId('C', 'h', 'G', 'R'));
 
 	bDraw = true;
 
-	if(!DamageReceiver::Create(reader))
+	if (!DamageReceiver::Create(reader))
 	{
 		LogicDebugError("Object not created");
 		return false;
 	}
-	if(!Init(reader)) return false;
-	
+	if (!Init(reader))
+		return false;
+
 	if (arbiter->IsCharacterDebug())
 	{
 		if (!shadowModel.scene && pattern)
-		{		
-			api->Trace ("Shadow Model for %s not set ",GetObjectID().c_str());
+		{
+			api->Trace("Shadow Model for %s not set ", GetObjectID().c_str());
 		}
 	}
 
@@ -356,7 +355,7 @@ void Character::PostCreate()
 }
 
 // возвращает null если нету, или указательн на MissionObject
-MissionObject * Character::GetBombExplosionPattern()
+MissionObject *Character::GetBombExplosionPattern()
 {
 	if (bombExplosionMO.Validate())
 		return bombExplosionMO.Ptr();
@@ -381,19 +380,19 @@ float Character::GetDeathTime()
 
 void Character::Kill()
 {
-	//animation->Goto("Idle",0.0f);
-	logic->SetHP(0.0f,false);
-	//logic->Update(0.0f);
-	if(controller)
+	// animation->Goto("Idle",0.0f);
+	logic->SetHP(0.0f, false);
+	// logic->Update(0.0f);
+	if (controller)
 	{
 		controller->Death();
 	}
-	
+
 	bWaterSpalshBorned = false;
 
 	if (ragdoll)
-	{		
-		//ActivateRagdoll(false, 0.0f);
+	{
+		// ActivateRagdoll(false, 0.0f);
 		ragdoll->Release();
 		ragdoll = NULL;
 
@@ -401,24 +400,24 @@ void Character::Kill()
 		fTimeToReleaseRagDoll = 0.0f;
 	}
 
-	for (dword i=0;i<BodyParts.Size();i++)
+	for (dword i = 0; i < BodyParts.Size(); i++)
 	{
 		if (BodyParts[i].pPhysBox)
 		{
 			BodyParts[i].pPhysBox->Release();
-			BodyParts[i].pPhysBox=NULL;
+			BodyParts[i].pPhysBox = NULL;
 		}
 
 		if (BodyParts[i].pPhysCapsule)
 		{
 			BodyParts[i].pPhysCapsule->Release();
-			BodyParts[i].pPhysCapsule=NULL;
+			BodyParts[i].pPhysCapsule = NULL;
 		}
 
 		if (BodyParts[i].pParticale)
 		{
 			BodyParts[i].pParticale->Release();
-			BodyParts[i].pParticale=NULL;
+			BodyParts[i].pParticale = NULL;
 		}
 	}
 
@@ -429,13 +428,12 @@ void Character::Kill()
 
 	bDeadConterOn = false;
 	DelUpdate(&Character::DeadTimer);
-	
+
 	set_new_ay = false;
-	//Activate(IsActive());
-	//Show(IsShow());
+	// Activate(IsActive());
+	// Show(IsShow());
 
-
-//	Unregistry(MG_DOF);
+	//	Unregistry(MG_DOF);
 	Unregistry(MG_SHADOWCAST);
 	Unregistry(MG_SHADOWRECEIVE);
 	Unregistry(MG_SEAREFLECTION);
@@ -447,47 +445,44 @@ void Character::Kill()
 	DelUpdate(&Character::Draw);
 	DelUpdate(&Character::DrawCoin);
 
-
 	if (controller)
 	{
 		controller->Reset();
 		controller->SetChrTarget(NULL);
 	}
 
-
 	DelUpdate(&Character::Work);
 	DelUpdate(&Character::UpdatePhysics);
 
-	if(!logic->IsActor())
-	{		
+	if (!logic->IsActor())
+	{
 		physics->Activate(false);
-		//arbiter->Activate(this, false);
+		// arbiter->Activate(this, false);
 	}
-	//else
+	// else
 	//{
 	//	physics->Activate(bColideWhenActor);
-		//arbiter->Activate(this, isActive);
+	// arbiter->Activate(this, isActive);
 	//}
-
 }
 
-void _cdecl Character::Cmd_enableactor(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_enableactor(const char *id, dword numParams, const char **params)
 {
 	DisableTimeEvent();
 
-	if(logic->IsDead())
+	if (logic->IsDead())
 	{
 		LogicDebugError("Command <enableactor>. Skip command, character is dead.");
 		return;
 	}
-	bool isActor = logic->IsActor();		
+	bool isActor = logic->IsActor();
 
 	float blend_time = -1.0f;
 
-	if(bEnableAniBlend && !isActor)
+	if (bEnableAniBlend && !isActor)
 	{
 		blend_time = 0.3f;
-	}		
+	}
 
 	if (was_showed)
 	{
@@ -496,19 +491,20 @@ void _cdecl Character::Cmd_enableactor(const char * id, dword numParams, const c
 
 	graph_changed = true;
 
-	if(controller)
+	if (controller)
 	{
 		controller->Reset();
-	}	
+	}
 
 	if (IsPlayer())
 	{
-		PlayerController * pc = (PlayerController*)controller;
+		PlayerController *pc = (PlayerController *)controller;
 		pc->EndQuickEvent();
 		if (pc->cur_weapon_style)
 		{
 			static const ConstString gunId("2Gun");
-			if (pc->cur_weapon_style->weapon_type == wp_gun) items->SetLogicLocator(gunId, ConstString::EmptyObject());
+			if (pc->cur_weapon_style->weapon_type == wp_gun)
+				items->SetLogicLocator(gunId, ConstString::EmptyObject());
 		}
 
 		if (pc->vanoHackDropPhysObjectWhenActor)
@@ -517,37 +513,37 @@ void _cdecl Character::Cmd_enableactor(const char * id, dword numParams, const c
 		}
 	}
 
-	animation->SetAnimation("actor",blend_time);
+	animation->SetAnimation("actor", blend_time);
 
 	if (logic->IsPairMode())
 	{
 		logic->EndPairProcess();
-	}		
-	logic->SetActor(true);		
+	}
+	logic->SetActor(true);
 
-	if(IsPlayer())
+	if (IsPlayer())
 	{
-		PlayerController * pc = (PlayerController*)controller;
-		MissionObject* mo = pc->phys_object;		
+		PlayerController *pc = (PlayerController *)controller;
+		MissionObject *mo = pc->phys_object;
 
 		if (mo)
 		{
 			mo->Show(false);
 		}
-	}	
+	}
 
-	bodyparts.SetRotation(0,true);
-	bodyparts.SetRotation(0,false);
+	bodyparts.SetRotation(0, true);
+	bodyparts.SetRotation(0, false);
 
 	ResetActor();
-	//UpdateActor(0);		
+	// UpdateActor(0);
 
-	LogicDebug("Command <enableactor>. Character now is actor.");		
+	LogicDebug("Command <enableactor>. Character now is actor.");
 
-	//ApplyAnimationQuery(0.1f);
+	// ApplyAnimationQuery(0.1f);
 }
 
-void _cdecl Character::Cmd_disableactor(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_disableactor(const char *id, dword numParams, const char **params)
 {
 	if (bActorMoveColider && logic->IsActor())
 	{
@@ -561,7 +557,7 @@ void _cdecl Character::Cmd_disableactor(const char * id, dword numParams, const 
 
 	float blend_time = -1.0f;
 
-	if(bEnableAniBlend && isActor)
+	if (bEnableAniBlend && isActor)
 	{
 		blend_time = 0.3f;
 	}
@@ -571,7 +567,7 @@ void _cdecl Character::Cmd_disableactor(const char * id, dword numParams, const 
 	if (animStateAlive)
 	{
 		animation->SetAnimation("base", blend_time);
-		animation->Goto("idle",0.0f);
+		animation->Goto("idle", 0.0f);
 	}
 
 	if (was_showed)
@@ -579,10 +575,11 @@ void _cdecl Character::Cmd_disableactor(const char * id, dword numParams, const 
 		Show(false);
 	}
 
-	//graph_changed = true;
+	// graph_changed = true;
 
-	if(deadTime >= 0.0f) isStartDead = false;
-	if(isStartDead)
+	if (deadTime >= 0.0f)
+		isStartDead = false;
+	if (isStartDead)
 	{
 		logic->SetHP(1.0f);
 		logic->SetActor(false);
@@ -591,50 +588,48 @@ void _cdecl Character::Cmd_disableactor(const char * id, dword numParams, const 
 	else
 	{
 		logic->SetActor(false);
-	}		
+	}
 
-
-
-	if(controller)
+	if (controller)
 	{
 		controller->Reset();
 		controller->SetChrTarget(NULL);
-	}		
+	}
 
 	if (ragdoll)
 	{
-		if (logic->GetHP()>0.0f &&				
+		if (logic->GetHP() > 0.0f &&
 			logic->GetState() != CharacterLogic::state_die &&
 			logic->GetState() != CharacterLogic::state_dead &&
 			!logic->IsPairMode())
 		{
-			animation->Goto("Lie",0.2f);
+			animation->Goto("Lie", 0.2f);
 		}
 		else
 		{
-			animation->ActivateLink("Lie",true);
+			animation->ActivateLink("Lie", true);
 		}
 	}
 
-	if(IsPlayer())
+	if (IsPlayer())
 	{
-		PlayerController * pc = (PlayerController*)controller;
+		PlayerController *pc = (PlayerController *)controller;
 		if (pc->vanoHackDropPhysObjectWhenActor)
 		{
 			pc->DropWeapon(true);
 			pc->BrokeWeapon(false);
 		}
-		pc->RestoreSecodWeapon();			
-	}	
+		pc->RestoreSecodWeapon();
+	}
 
 	logic->SetSpawnPoint(physics->GetPos());
 
 	LogicDebug("Command <disableactor>. Character now is not actor. AI & Physics activating.");
 }
 
-void _cdecl Character::Cmd_actorset(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_actorset(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <ActorSet> error. Invalidate parameters...");
 		return;
@@ -642,9 +637,9 @@ void _cdecl Character::Cmd_actorset(const char * id, dword numParams, const char
 
 	MOSafePointerTypeEx<ActorTimeLine> mo;
 	static const ConstString strTypeId("ActorTimeLine");
-	mo.FindObject(&Mission(),ConstString(params[0]),strTypeId);
+	mo.FindObject(&Mission(), ConstString(params[0]), strTypeId);
 
-	if(!mo.Ptr())
+	if (!mo.Ptr())
 	{
 		actorTimeLine = null;
 		LogicDebugError("Command <ActorSet>. Time line object \"%s\" not found or incorrect", params[0]);
@@ -654,22 +649,22 @@ void _cdecl Character::Cmd_actorset(const char * id, dword numParams, const char
 	actorTimeLine = mo.Ptr();
 
 	ResetActor();
-	if(logic->IsActor())
+	if (logic->IsActor())
 	{
-		//UpdateActor(0.0f);
+		// UpdateActor(0.0f);
 	}
 
 	LogicDebug("Command <ActorSet>. Set new actor's time line \"%s\"", params[0]);
 }
 
-void _cdecl Character::Cmd_goto(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_goto(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <Goto> error. Invalidate parameters...");
 		return;
 	}
-	if(!actorTimeLine)
+	if (!actorTimeLine)
 	{
 		LogicDebugError("Command <Goto> error. Time line not set...");
 		return;
@@ -681,7 +676,7 @@ void _cdecl Character::Cmd_goto(const char * id, dword numParams, const char ** 
 		act_node = pointIndex;
 	}
 	else
-	{			
+	{
 		actorTimeLine->Goto(actorData, pointIndex);
 		UpdateActor(0.0f);
 	}
@@ -689,15 +684,15 @@ void _cdecl Character::Cmd_goto(const char * id, dword numParams, const char ** 
 	LogicDebug("Command <Goto>. Current time line position moved to %i", actorData.GetCurrentPosition());
 }
 
-void _cdecl Character::Cmd_additem(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_additem(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 3)
+	if (numParams < 3)
 	{
 		LogicDebugError("Command <additem> error. Invalidate parameters...");
 		return;
 	}
 	bool isTrail = false;
-	if(numParams > 3)
+	if (numParams > 3)
 	{
 		isTrail = string::IsEqual(params[3], "trail");
 	}
@@ -712,26 +707,28 @@ void _cdecl Character::Cmd_additem(const char * id, dword numParams, const char 
 	descr.tip_id.Empty();
 	descr.fProbality = 100.0f;
 	descr.time_lie = 10.0f;
-	descr.itemLife = -1;				
+	descr.itemLife = -1;
 	descr.uniqTexture = numParams > 4 ? params[4] : null;
 	descr.trailTechnique = "Blend";
 	descr.trailPower = 1.0f;
 	descr.showFlare = false;
 	descr.locatortoattache = "";
 	descr.attachedobject.Empty();
-	descr.objectoffset = Vector(0.0f);		
+	descr.objectoffset = Vector(0.0f);
 
-	if(items->AddItem(&descr))
+	if (items->AddItem(&descr))
 	{
 		LogicDebug("Command <additem>. Add item \"%s\" with model \"%s\" to locator \"%s\" %s", params[0], params[1], params[2], isTrail ? "with trail" : "without trail");
-	}else{
+	}
+	else
+	{
 		LogicDebugError("Command <additem>. Can't add item \"%s\" with model \"%s\" to locator \"%s\"", params[0], params[1], params[2]);
 	}
 }
 
-void _cdecl Character::Cmd_delitem(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_delitem(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <delitem> error. Invalidate parameters...");
 		return;
@@ -740,9 +737,9 @@ void _cdecl Character::Cmd_delitem(const char * id, dword numParams, const char 
 	LogicDebug("Command <delitem>. Delete items with id = \"%s\", count = %i", params[0], count);
 }
 
-void _cdecl Character::Cmd_sethp(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_sethp(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <sethp> error. Invalidate parameters...");
 		return;
@@ -750,11 +747,11 @@ void _cdecl Character::Cmd_sethp(const char * id, dword numParams, const char **
 	float count = (float)atof(params[0]);
 	logic->SetHP(count);
 
-	if (logic->GetHP()<=0.0f)
+	if (logic->GetHP() <= 0.0f)
 	{
 		logic->Update(0.0f);
 
-		if(controller)
+		if (controller)
 		{
 			controller->Death();
 		}
@@ -764,7 +761,7 @@ void _cdecl Character::Cmd_sethp(const char * id, dword numParams, const char **
 	}
 	else
 	{
-		if(numParams >= 2)
+		if (numParams >= 2)
 		{
 			animation->ActivateLink(params[1]);
 		}
@@ -775,23 +772,23 @@ void _cdecl Character::Cmd_sethp(const char * id, dword numParams, const char **
 	LogicDebug("Command <sethp>. Set new HP for character by %f, current HP = %f", count, logic->GetHP());
 }
 
-void _cdecl Character::Cmd_sethpLimit(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_sethpLimit(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <sethpLimit> error. Invalidate parameters...");
 		return;
 	}
 	float count = (float)atof(params[0]);
-	logic->SetMinHPLimitter(count * 0.01f);			
+	logic->SetMinHPLimitter(count * 0.01f);
 	logic->CorrectHP();
 
 	LogicDebug("Command <sethpLimit>. Set new HPLimit to %f", count);
 }
 
-void _cdecl Character::Cmd_changehp(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_changehp(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <changehp> error. Invalidate parameters...");
 		return;
@@ -799,7 +796,7 @@ void _cdecl Character::Cmd_changehp(const char * id, dword numParams, const char
 	float count = (float)atof(params[0]);
 	logic->SetHP(logic->GetHP() + count);
 
-	if(numParams >= 2 && !logic->IsDead())
+	if (numParams >= 2 && !logic->IsDead())
 	{
 		animation->ActivateLink(params[1]);
 	}
@@ -807,18 +804,18 @@ void _cdecl Character::Cmd_changehp(const char * id, dword numParams, const char
 	LogicDebug("Command <changehp>. Character change HP by %f, current HP = %f", count, logic->GetHP());
 }
 
-void _cdecl Character::Cmd_teleport(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_teleport(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <teleport> error. Invalidate parameters...");
 		return;
 	}
 
 	MOSafePointer obj;
-	FindObject(ConstString(params[0]),obj);
+	FindObject(ConstString(params[0]), obj);
 
-	if(obj.Ptr())
+	if (obj.Ptr())
 	{
 		Matrix mtx(true);
 		obj.Ptr()->GetMatrix(mtx);
@@ -829,49 +826,49 @@ void _cdecl Character::Cmd_teleport(const char * id, dword numParams, const char
 	}
 	else
 	{
-		LogicDebugError("Command <teleport> error. Can't find object <%s>.",params[0]);
+		LogicDebugError("Command <teleport> error. Can't find object <%s>.", params[0]);
 	}
 }
 
-void _cdecl Character::Cmd_gizmorespawn(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_gizmorespawn(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <gizmorespawn> error. Invalidate parameters...");
 		return;
 	}
 
 	MOSafePointer obj;
-	FindObject(ConstString(params[0]),obj);
+	FindObject(ConstString(params[0]), obj);
 
-	if(obj.Ptr())
+	if (obj.Ptr())
 	{
-		char* resawnparams[1];
+		char *resawnparams[1];
 
-		resawnparams[0] = (char*)GetObjectID().c_str();
+		resawnparams[0] = (char *)GetObjectID().c_str();
 
-		obj.Ptr()->Command("respawn",1,(const char **)resawnparams);			
+		obj.Ptr()->Command("respawn", 1, (const char **)resawnparams);
 
 		LogicDebug("Command <gizmorespawn>. Character resawned at \"%s\"", params[0]);
 	}
 	else
 	{
-		LogicDebugError("Command <gizmorespawn> error. Can't find object <%s>.",params[0]);
+		LogicDebugError("Command <gizmorespawn> error. Can't find object <%s>.", params[0]);
 	}
 }
 
-void _cdecl Character::Cmd_respawn(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_respawn(const char *id, dword numParams, const char **params)
 {
-	//if (logic->GetHP()<=0.0f && !IsDead()) return;
+	// if (logic->GetHP()<=0.0f && !IsDead()) return;
 	killerId.Empty();
 
 	Kill();
 	statDismembered = false;
-	logic->deathPass = false;		
+	logic->deathPass = false;
 	fTimeToFreeze = 2.0f;
 	deadTime = -1.0f;
 	deadBodyTime = 0.0f;
-	if (bDeadConterOn && !bVanishBody) 
+	if (bDeadConterOn && !bVanishBody)
 	{
 		arbiter->DelDeadBody(*this);
 	}
@@ -880,7 +877,7 @@ void _cdecl Character::Cmd_respawn(const char * id, dword numParams, const char 
 	logic->Reset();
 	physics->Reset();
 	controller->Reset();
-	controller->SetChrTarget(null);		
+	controller->SetChrTarget(null);
 	items->Reset();
 	events->ResetCollapser();
 	events->ResetParticles();
@@ -889,28 +886,28 @@ void _cdecl Character::Cmd_respawn(const char * id, dword numParams, const char 
 
 	ReleaseFlyes();
 
-	if(animation)
+	if (animation)
 	{
 		animation->Start(true);
 	}
 
-	if(numParams == 0)
+	if (numParams == 0)
 	{
-		//physics->SetPos(init_pos);
-		//physics->SetAy(init_ay);
+		// physics->SetPos(init_pos);
+		// physics->SetAy(init_ay);
 	}
 
-	if(actorData.ani)
+	if (actorData.ani)
 	{
 		actorData.ani->Start(null, true);
-	}		
+	}
 
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		MOSafePointer obj;
-		FindObject(ConstString(params[0]),obj);
+		FindObject(ConstString(params[0]), obj);
 
-		if(obj.Ptr())
+		if (obj.Ptr())
 		{
 			Matrix mtx(true);
 			obj.Ptr()->GetMatrix(mtx);
@@ -925,19 +922,19 @@ void _cdecl Character::Cmd_respawn(const char * id, dword numParams, const char 
 
 	LogicDebug("Command <respawn>. Character is respawn now.");
 
-	if(numParams > 1)
-	{			
+	if (numParams > 1)
+	{
 		MOSafePointer obj;
-		FindObject(ConstString(params[0]),obj);
+		FindObject(ConstString(params[0]), obj);
 
-		if(obj.Ptr())
+		if (obj.Ptr())
 		{
 			Matrix mtx(true);
 			obj.Ptr()->GetMatrix(mtx);
 			physics->SetPos(mtx.pos);
-			physics->SetAy(mtx.vz.GetAY(physics->GetAy()));	
+			physics->SetAy(mtx.vz.GetAY(physics->GetAy()));
 
-			LogicDebug("                  respawned at %s",params[0]);
+			LogicDebug("                  respawned at %s", params[0]);
 		}
 	}
 
@@ -951,38 +948,38 @@ void _cdecl Character::OneFrameHide(float dltTime, long level)
 	oneFrameHide = false;
 }
 
-void _cdecl Character::Cmd_show(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_show(const char *id, dword numParams, const char **params)
 {
 	Show(true);
 	LogicDebug("Command <show>. Character was showed");
 }
 
-void _cdecl Character::Cmd_hide(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_hide(const char *id, dword numParams, const char **params)
 {
 	Show(false);
 	LogicDebug("Command <hide>. Character was hided");
 }
 
-void _cdecl Character::Cmd_activate(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_activate(const char *id, dword numParams, const char **params)
 {
 	Activate(true);
 	LogicDebug("Command <activate>. Character was activated");
 }
 
-void _cdecl Character::Cmd_deactivate(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_deactivate(const char *id, dword numParams, const char **params)
 {
 	Activate(false);
 	LogicDebug("Command <deactivate>. Character was deactivated");
 }
 
-void _cdecl Character::Cmd_instant_kill(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_instant_kill(const char *id, dword numParams, const char **params)
 {
 	Kill();
 
 	LogicDebug("Command <instant kill>. Character was killed");
 }
 
-void _cdecl Character::Cmd_EnableActorColider(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_EnableActorColider(const char *id, dword numParams, const char **params)
 {
 	bColideWhenActor = true;
 
@@ -991,7 +988,7 @@ void _cdecl Character::Cmd_EnableActorColider(const char * id, dword numParams, 
 	LogicDebug("Command <DisableActorColider>. ActorColider was enabled");
 }
 
-void _cdecl Character::Cmd_DisableActorColider(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_DisableActorColider(const char *id, dword numParams, const char **params)
 {
 	bColideWhenActor = false;
 
@@ -1000,27 +997,27 @@ void _cdecl Character::Cmd_DisableActorColider(const char * id, dword numParams,
 	LogicDebug("Command <DisableActorColider>. ActorColider was disabled");
 }
 
-void _cdecl Character::Cmd_EnableAniBlend(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_EnableAniBlend(const char *id, dword numParams, const char **params)
 {
-	if(animation && actorData.ani && !EditMode_IsOn())
+	if (animation && actorData.ani && !EditMode_IsOn())
 	{
 		bEnableAniBlend = true;
 		LogicDebug("Command <EnableAniBlend>. AniBlend was enabled");
 	}
 }
 
-void _cdecl Character::Cmd_DisableAniBlend(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_DisableAniBlend(const char *id, dword numParams, const char **params)
 {
-	if(animation && actorData.ani && !EditMode_IsOn())
+	if (animation && actorData.ani && !EditMode_IsOn())
 	{
 		bEnableAniBlend = false;
 		LogicDebug("Command <DisableAniBlend>. AniBlend was disabled");
 	}
 }
 
-void _cdecl Character::Cmd_setwaypoint(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_setwaypoint(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <setwaypoint> error. Invalidate parameters...");
 		return;
@@ -1034,15 +1031,15 @@ void _cdecl Character::Cmd_setwaypoint(const char * id, dword numParams, const c
 	LogicDebug("Command <setwaypoint>. Waypoints was changed to \"%s\"", params[0]);
 }
 
-void _cdecl Character::Cmd_setFParams(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_setFParams(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <setFParams> error. Invalidate parameters...");
 		return;
 	}
 
-	crt_strncpy(FatalityParamsData,sizeof(FatalityParamsData),params[0], sizeof(FatalityParamsData));
+	crt_strncpy(FatalityParamsData, sizeof(FatalityParamsData), params[0], sizeof(FatalityParamsData));
 	FatalityParamsData[sizeof(FatalityParamsData) - 1] = 0;
 	FatalityParamsId.Set(FatalityParamsData);
 	logic->FParams.Reset();
@@ -1051,9 +1048,9 @@ void _cdecl Character::Cmd_setFParams(const char * id, dword numParams, const ch
 	LogicDebug("Command <setFParams>. Fatalaty Params was changed to \"%s\"", params[0]);
 }
 
-void _cdecl Character::Cmd_settarget(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_settarget(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <settarget> error. Invalidate parameters...");
 		return;
@@ -1067,18 +1064,18 @@ void _cdecl Character::Cmd_settarget(const char * id, dword numParams, const cha
 	LogicDebug("Command <settarget>. Waypoints chabged to \"%s\"", params[0]);
 }
 
-void _cdecl Character::Cmd_setbombtarget(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_setbombtarget(const char *id, dword numParams, const char **params)
 {
-	if(numParams < 1)
+	if (numParams < 1)
 	{
 		LogicDebugError("Command <setbombtarget> error. Invalidate parameters...");
 		return;
 	}
 
 	MOSafePointer obj;
-	FindObject(ConstString(params[0]),obj);
+	FindObject(ConstString(params[0]), obj);
 
-	if(obj.Ptr())
+	if (obj.Ptr())
 	{
 		Matrix mtx(true);
 		obj.Ptr()->GetMatrix(mtx);
@@ -1088,13 +1085,13 @@ void _cdecl Character::Cmd_setbombtarget(const char * id, dword numParams, const
 	}
 	else
 	{
-		LogicDebugError("Command <setbombtarget> error. Can't find object <%s>.",params[0]);
+		LogicDebugError("Command <setbombtarget> error. Can't find object <%s>.", params[0]);
 	}
 }
 
-void _cdecl Character::Cmd_movelocator(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_movelocator(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 2)
+	if (numParams >= 2)
 	{
 		items->SetLogicLocator(ConstString(params[0]), ConstString(params[1]));
 
@@ -1106,38 +1103,36 @@ void _cdecl Character::Cmd_movelocator(const char * id, dword numParams, const c
 	}
 }
 
-void _cdecl Character::Cmd_drawon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_drawon(const char *id, dword numParams, const char **params)
 {
 	bDraw = true;
 
 	LogicDebug("Command <drawon>. Character Draw was enabled.");
 }
 
-void _cdecl Character::Cmd_drawoff(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_drawoff(const char *id, dword numParams, const char **params)
 {
 	bDraw = false;
 
 	LogicDebug("Command <drawoff>. Character Draw was disabled.");
 }
 
-void _cdecl Character::Cmd_show_weapon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_show_weapon(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 2)
+	if (numParams >= 2)
 	{
 		bool show = false;
-		if (params[0][0]=='Y'||params[0][0]=='y')
+		if (params[0][0] == 'Y' || params[0][0] == 'y')
 		{
 			show = true;
-			LogicDebug("Command <show_weapon>. Weapon %s was showed...",params[1]);
+			LogicDebug("Command <show_weapon>. Weapon %s was showed...", params[1]);
 		}
 		else
 		{
-			LogicDebug("Command <show_weapon>. Weapon %s was hided...",params[1]);
+			LogicDebug("Command <show_weapon>. Weapon %s was hided...", params[1]);
 		}
 
-		items->ShowWeapon(show,ConstString(params[1]));
-
-
+		items->ShowWeapon(show, ConstString(params[1]));
 	}
 	else
 	{
@@ -1145,13 +1140,13 @@ void _cdecl Character::Cmd_show_weapon(const char * id, dword numParams, const c
 	}
 }
 
-void _cdecl Character::Cmd_grab_weapon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_grab_weapon(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1 && IsPlayer())
-	{			
+	if (numParams >= 1 && IsPlayer())
+	{
 		pgw_start_node = null;
 
-		if(numParams >= 2)
+		if (numParams >= 2)
 		{
 			pgw_start_node = params[1];
 		}
@@ -1162,47 +1157,49 @@ void _cdecl Character::Cmd_grab_weapon(const char * id, dword numParams, const c
 
 		if (numParams >= 3)
 		{
-			pgw_blend_time = (float)strtod(params[2], null);	
+			pgw_blend_time = (float)strtod(params[2], null);
 		}
 
 		if (logic->pair)
 		{
 			pgw_victim = logic->pair;
 		}
-		else
-			if(numParams >= 4)
-			{				
-				MOSafePointerTypeEx<Character> trgt;
-				static const ConstString strTypeId("Character");
-				trgt.FindObject(&Mission(),ConstString(params[3]),strTypeId);
+		else if (numParams >= 4)
+		{
+			MOSafePointerTypeEx<Character> trgt;
+			static const ConstString strTypeId("Character");
+			trgt.FindObject(&Mission(), ConstString(params[3]), strTypeId);
 
-				pgw_victim = trgt.Ptr();				
-			}
+			pgw_victim = trgt.Ptr();
+		}
 
-			if (pgw_victim)
+		if (pgw_victim)
+		{
+			int index = pgw_victim->items->FindItemIndex(ConstString(params[0]));
+
+			if (index != -1)
 			{
-				int index = pgw_victim->items->FindItemIndex(ConstString(params[0]));
-
-				if (index !=-1)
-				{	
-					pgw_wp_index = index;
-					need_post_grab_weapon = true;					
-					LogicDebug("Command <grab weapon>. Weapon with ID %s was taken.", params[0]);
-				}else{
-					LogicDebugError("Command <grab weapon> skip. Weapon with ID %s not found.", params[0]);
-				}
+				pgw_wp_index = index;
+				need_post_grab_weapon = true;
+				LogicDebug("Command <grab weapon>. Weapon with ID %s was taken.", params[0]);
 			}
 			else
 			{
-				if (string::IsEqual(params[3],"self"))
-				{
-					LogicDebugError("Command <grab weapon>. Self mode.");
-					((PlayerController*)controller)->TakeChachedWeapon(ConstString(params[0]), pgw_blend_time,params[1]);
-
-				}else{
-					LogicDebugError("Command <grab weapon> skip. No victim, no self.");
-				}
+				LogicDebugError("Command <grab weapon> skip. Weapon with ID %s not found.", params[0]);
 			}
+		}
+		else
+		{
+			if (string::IsEqual(params[3], "self"))
+			{
+				LogicDebugError("Command <grab weapon>. Self mode.");
+				((PlayerController *)controller)->TakeChachedWeapon(ConstString(params[0]), pgw_blend_time, params[1]);
+			}
+			else
+			{
+				LogicDebugError("Command <grab weapon> skip. No victim, no self.");
+			}
+		}
 	}
 	else
 	{
@@ -1210,28 +1207,27 @@ void _cdecl Character::Cmd_grab_weapon(const char * id, dword numParams, const c
 	}
 }
 
-void _cdecl Character::Cmd_take_weapon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_take_weapon(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 4 && IsPlayer())
+	if (numParams >= 4 && IsPlayer())
 	{
-		const char* start_node = null;
+		const char *start_node = null;
 
-		if(numParams >= 3)
+		if (numParams >= 3)
 		{
 			start_node = params[2];
 		}
 
-		const char* broken_part1 = null;
-		const char* broken_part2 = null;
+		const char *broken_part1 = null;
+		const char *broken_part2 = null;
 
-		if(numParams >= 5)
+		if (numParams >= 5)
 		{
 			broken_part1 = params[3];
 			broken_part2 = params[4];
 		}
 
-		((PlayerController*)controller)->TakeWeapon(GetWeaponType(params[0]), params[1],
-			broken_part1,broken_part2,ConstString(),0.2f,start_node);
+		((PlayerController *)controller)->TakeWeapon(GetWeaponType(params[0]), params[1], broken_part1, broken_part2, ConstString(), 0.2f, start_node);
 
 		LogicDebug("Command <take weapon>. Weapon %s with model %s was taken.", params[0], params[1]);
 	}
@@ -1241,60 +1237,60 @@ void _cdecl Character::Cmd_take_weapon(const char * id, dword numParams, const c
 	}
 }
 
-void _cdecl Character::Cmd_ragdoll(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_ragdoll(const char *id, dword numParams, const char **params)
 {
-	ActivateRagdoll(true,0.2f);
+	ActivateRagdoll(true, 0.2f);
 	LogicDebugError("Command <ragdoll>. Ragdoll was activated.");
 }
 
-void _cdecl Character::Cmd_pair_minigame(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_pair_minigame(const char *id, dword numParams, const char **params)
 {
-	for (dword i=0;i<20;i++)
+	for (dword i = 0; i < 20; i++)
 	{
-		if (i<numParams)
+		if (i < numParams)
 		{
 			MOSafePointerTypeEx<Character> trgt;
 			static const ConstString strTypeId("Character");
-			trgt.FindObject(&Mission(),ConstString(params[i]),strTypeId);
+			trgt.FindObject(&Mission(), ConstString(params[i]), strTypeId);
 
-			pair_minigame[i] = trgt.Ptr();				
-			//pair_minigame[i]->events->SetTimeEvent(false);
+			pair_minigame[i] = trgt.Ptr();
+			// pair_minigame[i]->events->SetTimeEvent(false);
 		}
 		else
 		{
 			pair_minigame[i] = null;
-		}			
+		}
 	}
 
 	DisableTimeEvent();
 	LogicDebugError("Command <pair_minigame>. Pairs was set.");
 }
 
-void _cdecl Character::Cmd_pair_minigame_add(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_pair_minigame_add(const char *id, dword numParams, const char **params)
 {
-	if (numParams>0)
+	if (numParams > 0)
 	{
 		dword index = 0;
 
-		for (dword i=0;i<20;i++)		
+		for (dword i = 0; i < 20; i++)
 		{
 			if (!pair_minigame[i])
 			{
 				MOSafePointerTypeEx<Character> trgt;
 				static const ConstString strTypeId("Character");
-				trgt.FindObject(&Mission(),ConstString(params[index]),strTypeId);
+				trgt.FindObject(&Mission(), ConstString(params[index]), strTypeId);
 
 				if (trgt.Ptr())
-				{						
+				{
 					pair_minigame[i] = trgt.Ptr();
 					index++;
 
-					if (index>=numParams)
+					if (index >= numParams)
 					{
 						break;
 					}
-				}					
-			}								
+				}
+			}
 		}
 	}
 
@@ -1302,18 +1298,18 @@ void _cdecl Character::Cmd_pair_minigame_add(const char * id, dword numParams, c
 	LogicDebugError("Command <pair_minigame_add>. Pairs was set.");
 }
 
-void _cdecl Character::Cmd_collapse(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_collapse(const char *id, dword numParams, const char **params)
 {
-	events->BoneCollapse(animation->GetCurAnimation(),"collapse",params,numParams);
+	events->BoneCollapse(animation->GetCurAnimation(), "collapse", params, numParams);
 	LogicDebugError("Command <collapse>. Pairs was set.");
 }
 
-void _cdecl Character::Cmd_actor_attach(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_actor_attach(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		MOSafePointer obj;
-		FindObject(ConstString(params[0]),obj);
+		FindObject(ConstString(params[0]), obj);
 
 		actor_attach = obj.Ptr();
 
@@ -1332,15 +1328,15 @@ void _cdecl Character::Cmd_actor_attach(const char * id, dword numParams, const 
 	}
 }
 
-void _cdecl Character::Cmd_actor_deattach(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_actor_deattach(const char *id, dword numParams, const char **params)
 {
 	actor_attach = null;
 	LogicDebugError("Command <actor_deattach>. Charater was deattached...");
 }
 
-void _cdecl Character::Cmd_hairenable(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_hairenable(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		bool enable = false;
 
@@ -1360,9 +1356,9 @@ void _cdecl Character::Cmd_hairenable(const char * id, dword numParams, const ch
 	}
 }
 
-void _cdecl Character::Cmd_legsenable(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_legsenable(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		bool enable = false;
 
@@ -1382,9 +1378,9 @@ void _cdecl Character::Cmd_legsenable(const char * id, dword numParams, const ch
 	}
 }
 
-void _cdecl Character::Cmd_UseRootBone(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_UseRootBone(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		if (params[0][0] == 'Y' || params[0][0] == 'y')
 		{
@@ -1394,31 +1390,31 @@ void _cdecl Character::Cmd_UseRootBone(const char * id, dword numParams, const c
 		else
 		{
 			useRootBone = false;
-			LogicDebug("Command <UseRootBone>. Character dont use root bone.");			
-		}			
+			LogicDebug("Command <UseRootBone>. Character dont use root bone.");
+		}
 	}
 }
 
-void _cdecl Character::Cmd_controller(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_controller(const char *id, dword numParams, const char **params)
 {
 	if (controller)
 	{
 		controller->Command(numParams, params);
-		LogicDebug("Command <controller>. Command to %s controller was send.",params[0]);
+		LogicDebug("Command <controller>. Command to %s controller was send.", params[0]);
 	}
 }
 
-void _cdecl Character::Cmd_Achievement(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_Achievement(const char *id, dword numParams, const char **params)
 {
-	if(numParams >= 1)
+	if (numParams >= 1)
 	{
 		if (chrAchievements)
-			chrAchievements->AchievementReachedByID(params[0]);			
-		LogicDebug("Command <Achievement>. Some conditions of achievement %s was satisfied.",params[0]);
+			chrAchievements->AchievementReachedByID(params[0]);
+		LogicDebug("Command <Achievement>. Some conditions of achievement %s was satisfied.", params[0]);
 	}
 }
 
-void _cdecl Character::Cmd_ResetAI(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_ResetAI(const char *id, dword numParams, const char **params)
 {
 	if (controller)
 	{
@@ -1427,19 +1423,19 @@ void _cdecl Character::Cmd_ResetAI(const char * id, dword numParams, const char 
 	}
 }
 
-void _cdecl Character::Cmd_RedirectSoundEvent(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_RedirectSoundEvent(const char *id, dword numParams, const char **params)
 {
-	if(events)
-	{			
+	if (events)
+	{
 		events->PlaySound(animation->GetCurAnimation(), "Snd", params, numParams);
 	}
 }
 
-void _cdecl Character::Cmd_dropweapon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_dropweapon(const char *id, dword numParams, const char **params)
 {
 	if (IsPlayer())
 	{
-		PlayerController * pc = (PlayerController*)controller;
+		PlayerController *pc = (PlayerController *)controller;
 		pc->DropWeapon(false);
 		pc->BrokeWeapon(true);
 		if (numParams && params[0] && params[0][0])
@@ -1447,19 +1443,19 @@ void _cdecl Character::Cmd_dropweapon(const char * id, dword numParams, const ch
 	}
 }
 
-void _cdecl Character::Cmd_damageweapon(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_damageweapon(const char *id, dword numParams, const char **params)
 {
 	float damage = (numParams >= 1) ? (float)atof(params[0]) : 1.0f;
 	if (items)
 		items->DamageWeapon(false, damage);
 }
 
-void _cdecl Character::Cmd_postdraw(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_postdraw(const char *id, dword numParams, const char **params)
 {
 	Draw(0.0f, 0);
 }
 
-void _cdecl Character::Cmd_GodMode(const char * id, dword numParams, const char ** params)
+void _cdecl Character::Cmd_GodMode(const char *id, dword numParams, const char **params)
 {
 	if (IsPlayer())
 	{
@@ -1467,20 +1463,19 @@ void _cdecl Character::Cmd_GodMode(const char * id, dword numParams, const char 
 	}
 }
 
-
 //Обработчик команд для объекта
-void Character::Command(const char * id, dword numParams, const char ** params)
-{	
-	if(!commandsTable.ExecuteCommand(this, id, numParams, params))
+void Character::Command(const char *id, dword numParams, const char **params)
+{
+	if (!commandsTable.ExecuteCommand(this, id, numParams, params))
 	{
 		LogicDebugError("Unknown command \"%s\".", id);
 	}
 }
 
 //Инициализировать объект
-bool Character::EditMode_Create(MOPReader & reader)
+bool Character::EditMode_Create(MOPReader &reader)
 {
-	if(!DamageReceiver::Create(reader))
+	if (!DamageReceiver::Create(reader))
 	{
 		LogicDebugError("Object not created");
 		return false;
@@ -1489,36 +1484,38 @@ bool Character::EditMode_Create(MOPReader & reader)
 
 	if (arbiter->IsCharacterDebug())
 	{
-		if (!shadowModel.scene  && pattern)
-		{		
-			api->Trace ("Shadow Model for %s not set ",GetObjectID().c_str());
+		if (!shadowModel.scene && pattern)
+		{
+			api->Trace("Shadow Model for %s not set ", GetObjectID().c_str());
 		}
 	}
 
-	SetUpdate(&Character::EditMode_Work,ML_EXECUTE1);
+	SetUpdate(&Character::EditMode_Work, ML_EXECUTE1);
 
 	return true;
 }
 
 //Обновить параметры
-bool Character::EditMode_Update(MOPReader & reader)
+bool Character::EditMode_Update(MOPReader &reader)
 {
 	Release();
-	
-	if(!Init(reader)) return false;
+
+	if (!Init(reader))
+		return false;
 
 	return true;
 }
 
 //Получить бокс, описывающий объект
-void Character::GetBox(Vector & min, Vector & max)
+void Character::GetBox(Vector &min, Vector &max)
 {
-	IGMXScene* mdl = shadowModel.scene;
+	IGMXScene *mdl = shadowModel.scene;
 
-	if (!mdl) mdl = currentModel;
+	if (!mdl)
+		mdl = currentModel;
 
-	if(mdl)
-	{		
+	if (mdl)
+	{
 		min = mdl->GetLocalBound().vMin;
 		max = mdl->GetLocalBound().vMax;
 
@@ -1534,7 +1531,7 @@ void Character::GetBox(Vector & min, Vector & max)
 			// Vano: тут поменял немного, хотя все равно неправильно работает.
 			Vector center = ((min + max) * 0.5f);
 			center = center * mtx * mtx2;
-			Vector extents = ((max - min) * 0.5f) + 0.2f;	// магическое 0.2f
+			Vector extents = ((max - min) * 0.5f) + 0.2f; // магическое 0.2f
 
 			/*min = min * mtx * mtx2;
 			max = max * mtx * mtx2;*/
@@ -1542,7 +1539,7 @@ void Character::GetBox(Vector & min, Vector & max)
 			min = center - extents;
 			max = center + extents;
 		}
-		
+
 		return;
 	}
 	else
@@ -1553,15 +1550,15 @@ void Character::GetBox(Vector & min, Vector & max)
 }
 
 //Получить размеры описывающего ящика
-void Character::EditMode_GetSelectBox(Vector & min, Vector & max)
+void Character::EditMode_GetSelectBox(Vector &min, Vector &max)
 {
-	if(physics)
+	if (physics)
 	{
 		float r = physics->GetRadius();
 		float h = physics->GetHeight();
-		
+
 		min = Vector(-r, 0.0f, -r) - 0.1f;
-		max = Vector(r, h, r) + 0.1f;		
+		max = Vector(r, h, r) + 0.1f;
 	}
 	else
 	{
@@ -1575,11 +1572,12 @@ void Character::EditMode_GetSelectBox(Vector & min, Vector & max)
 void Character::EditMode_Select(bool isSelect)
 {
 	MissionObject::EditMode_Select(isSelect);
-	
-	if(!EditMode_IsOn()) return;
 
-	if(isSelect)
-	{		
+	if (!EditMode_IsOn())
+		return;
+
+	if (isSelect)
+	{
 		SetUpdate(&Character::EditModeDrawSelected, ML_ALPHA5);
 	}
 	else
@@ -1594,33 +1592,33 @@ void _cdecl Character::EditModeDrawSelected(float dltTime, long level)
 {
 	if (!auto_spawnpoint)
 	{
-		Render().DrawSphere(init_spawnpoint,0.25f,0xff00ffff);
+		Render().DrawSphere(init_spawnpoint, 0.25f, 0xff00ffff);
 	}
 
 	if (chrInitAI)
-	{		
-		for (int i=0;i<(int)chrInitAI->patrol_points.Size();i++)
+	{
+		for (int i = 0; i < (int)chrInitAI->patrol_points.Size(); i++)
 		{
 			Vector p1 = chrInitAI->patrol_points[i].pos;
 			Vector p2;
 
-			if (i==(int)chrInitAI->patrol_points.Size()-1)
+			if (i == (int)chrInitAI->patrol_points.Size() - 1)
 			{
 				p2 = chrInitAI->patrol_points[0].pos;
 			}
 			else
 			{
-				p2 = chrInitAI->patrol_points[i+1].pos;
+				p2 = chrInitAI->patrol_points[i + 1].pos;
 			}
 
-			Render().DrawLine(p1,0xff00ffff,p2,0xff00ffff);			
-			Render().DrawSphere(p1,0.25f,0xff00ffff);
+			Render().DrawLine(p1, 0xff00ffff, p2, 0xff00ffff);
+			Render().DrawSphere(p1, 0.25f, 0xff00ffff);
 
-			if (chrInitAI->patrol_points[i].wait_time>0.0f)
+			if (chrInitAI->patrol_points[i].wait_time > 0.0f)
 			{
 				Render().DrawVector(chrInitAI->patrol_points[i].pos,
-									chrInitAI->patrol_points[i].pos + chrInitAI->patrol_points[i].dir,0xff00ffff);
-				Render().Print(chrInitAI->patrol_points[i].pos,10.0f,0,0xffffffff,"Node - %s, time - %4.1f",
+									chrInitAI->patrol_points[i].pos + chrInitAI->patrol_points[i].dir, 0xff00ffff);
+				Render().Print(chrInitAI->patrol_points[i].pos, 10.0f, 0, 0xffffffff, "Node - %s, time - %4.1f",
 							   chrInitAI->patrol_points[i].wait_node,
 							   chrInitAI->patrol_points[i].wait_time);
 			}
@@ -1629,17 +1627,17 @@ void _cdecl Character::EditModeDrawSelected(float dltTime, long level)
 }
 
 //Получить матрицу объекта
-Matrix & Character::GetMatrix(Matrix & mtx)
-{	
+Matrix &Character::GetMatrix(Matrix &mtx)
+{
 	if (useRootBone)
 	{
 		return physics->GetMatrixWithBoneOffset(mtx);
 	}
-	
+
 	return physics->GetModelMatrix(mtx);
 }
 
-Matrix& Character::GetColiderMatrix(Matrix & mtx)
+Matrix &Character::GetColiderMatrix(Matrix &mtx)
 {
 	return physics->GetModelMatrix(mtx);
 }
@@ -1647,7 +1645,7 @@ Matrix& Character::GetColiderMatrix(Matrix & mtx)
 //Показать/скрыть объект
 void Character::Show(bool isShow)
 {
-	if(showProcess)
+	if (showProcess)
 	{
 		LogicDebugError("Show process already started");
 		return;
@@ -1660,7 +1658,7 @@ void Character::Show(bool isShow)
 	}
 
 	showProcess = true;
-	
+
 	if (!IsShow() && isShow)
 	{
 		was_showed = true;
@@ -1674,17 +1672,17 @@ void Character::Show(bool isShow)
 
 	logic->UpdateFatalityParams();
 	DamageReceiver::Show(isShow);
-	if(IsDead() && isShow)
+	if (IsDead() && isShow)
 	{
 		LogicDebug("Warning: Character is dead and can't be showing...");
 		isShow = false;
 	}
 
-	if(isShow)
+	if (isShow)
 	{
-//		Registry(MG_DOF, &Character::ShadowDraw, ML_DYNAMIC2);
-		
-		if(shadowCast)
+		//		Registry(MG_DOF, &Character::ShadowDraw, ML_DYNAMIC2);
+
+		if (shadowCast)
 		{
 			Registry(MG_SHADOWCAST, &Character::ShadowInfo, ML_GEOMETRY2);
 		}
@@ -1692,8 +1690,8 @@ void Character::Show(bool isShow)
 		{
 			Unregistry(MG_SHADOWCAST);
 		}
-		
-		if(shadowReceive)
+
+		if (shadowReceive)
 		{
 			Unregistry(MG_SHADOWDONTRECEIVE);
 			Registry(MG_SHADOWRECEIVE, &Character::ShadowDraw, ML_GEOMETRY2);
@@ -1703,24 +1701,24 @@ void Character::Show(bool isShow)
 			Registry(MG_SHADOWDONTRECEIVE, (MOF_EVENT)&Character::ShadowDraw, ML_GEOMETRY2);
 			Unregistry(MG_SHADOWRECEIVE);
 		}
-		
-		if(seaReflection)
+
+		if (seaReflection)
 		{
 			Registry(MG_SEAREFLECTION, &Character::ReflectionDraw, ML_GEOMETRY2);
 		}
 		else
 		{
 			Unregistry(MG_SEAREFLECTION);
-		}		
+		}
 
-		if(seaRefraction)
+		if (seaRefraction)
 		{
 			Registry(MG_SEAREFRACTION, &Character::ReflectionDraw, ML_GEOMETRY2);
 		}
 		else
 		{
 			Unregistry(MG_SEAREFRACTION);
-		}		
+		}
 
 		bShadowGrRegistred = true;
 		bReflectGrRegistred = true;
@@ -1734,13 +1732,13 @@ void Character::Show(bool isShow)
 			flyCloud = null;
 		}
 
-		if(events)
+		if (events)
 		{
 			events->ResetParticles();
 			events->ResetSounds();
 		}
 
-//		Unregistry(MG_DOF);
+		//		Unregistry(MG_DOF);
 		Unregistry(MG_SHADOWCAST);
 		Unregistry(MG_SHADOWRECEIVE);
 		Unregistry(MG_SEAREFLECTION);
@@ -1748,10 +1746,9 @@ void Character::Show(bool isShow)
 		Unregistry(MG_SHADOWDONTRECEIVE);
 	}
 
-
-	if(!EditMode_IsOn())
+	if (!EditMode_IsOn())
 	{
-		if(isShow)
+		if (isShow)
 		{
 			/*if (logic->PairModeAllowed(true))
 			{
@@ -1765,25 +1762,27 @@ void Character::Show(bool isShow)
 			LogicDebug("Show");
 			SetUpdate(&Character::DrawTrail, ML_ALPHA3 + 1);
 			SetUpdate(&Character::DrawFlares, ML_ALPHA3 + 10);
-			
-			if (IsPlayer()) SetUpdate(&Character::DrawHUD, ML_GUI1);
 
-			if(deadTime < 0.0f)
+			if (IsPlayer())
+				SetUpdate(&Character::DrawHUD, ML_GUI1);
+
+			if (deadTime < 0.0f)
 			{
 				SetUpdate(&Character::Draw, ML_GEOMETRY3);
-				
-				if (!IsPlayer()) SetUpdate(&Character::DrawCoin, ML_ALPHA4);				
+
+				if (!IsPlayer())
+					SetUpdate(&Character::DrawCoin, ML_ALPHA4);
 			}
 			else
 			{
-				DelUpdate(&Character::DrawCoin);				
-			}		
+				DelUpdate(&Character::DrawCoin);
+			}
 
-			if(animation)
+			if (animation)
 			{
 				animation->Pause(logic->IsActor());
 			}
-			if(actorData.ani)
+			if (actorData.ani)
 			{
 				actorData.ani->Pause(!logic->IsActor());
 			}
@@ -1791,21 +1790,22 @@ void Character::Show(bool isShow)
 		else
 		{
 			LogicDebug("Hide");
-			
-			if(animation)
+
+			if (animation)
 			{
-				animation->Pause(true);				
+				animation->Pause(true);
 			}
-			if(actorData.ani)
+			if (actorData.ani)
 			{
 				actorData.ani->Pause(true);
 			}
-			
+
 			DelUpdate(&Character::DrawTrail);
 			DelUpdate(&Character::DrawFlares);
 			DelUpdate(&Character::Draw);
 			DelUpdate(&Character::DrawCoin);
-			if (IsPlayer()) DelUpdate(&Character::DrawHUD);
+			if (IsPlayer())
+				DelUpdate(&Character::DrawHUD);
 		}
 
 		Activate(IsActive());
@@ -1814,13 +1814,13 @@ void Character::Show(bool isShow)
 	}
 	else
 	{
-		if(isShow)
+		if (isShow)
 		{
 			SetUpdate(&Character::EditMode_Draw, ML_ALPHA5);
 			SetUpdate(&Character::DrawCoin, ML_ALPHA2);
 			SetUpdate(&Character::DrawFlares, ML_ALPHA5);
 
-			DelUpdate(&Character::DrawTransparency);			
+			DelUpdate(&Character::DrawTransparency);
 		}
 		else
 		{
@@ -1839,10 +1839,10 @@ void Character::Show(bool isShow)
 
 //Активировать/деактивировать объект
 void Character::Activate(bool isActive)
-{	
+{
 	if (IsPlayer())
 	{
-		PlayerController * pc = (PlayerController*)controller;
+		PlayerController *pc = (PlayerController *)controller;
 		if (pc->itemTaken && pc->phys_object && pc->isDropStarted)
 		{
 			pc->DropWeapon(false);
@@ -1856,23 +1856,26 @@ void Character::Activate(bool isActive)
 		return;
 	}
 
-	if(activeProcess)
+	if (activeProcess)
 	{
 		LogicDebugError("Activate process already started");
 		return;
 	}
 	activeProcess = true;
 	DamageReceiver::Activate(isActive);
-	if(EditMode_IsOn()) isActive = false;
-	if((IsDead() && isActive))
+	if (EditMode_IsOn())
+		isActive = false;
+	if ((IsDead() && isActive))
 	{
 		LogicDebug("Warning: Character is dead and can't be activate now...");
 		isActive = false;
 	}
-	if(isActive)
+	if (isActive)
 	{
 		LogicDebug("Activate");
-	}else{
+	}
+	else
+	{
 		LogicDebug("Deactivate");
 	}
 
@@ -1882,20 +1885,23 @@ void Character::Activate(bool isActive)
 		controller->SetChrTarget(NULL);
 	}
 
-	//if(!logic->IsActor())
+	// if(!logic->IsActor())
 	{
-		if(!IsShow()) isActive = false;
-		if(IsDie()) isActive = false;
-		if(isActive && logic->GetHP()>0)// && logic->GetState() != CharacterLogic::state_die && logic->GetState() != CharacterLogic::state_dead)
+		if (!IsShow())
+			isActive = false;
+		if (IsDie())
+			isActive = false;
+		if (isActive && logic->GetHP() > 0) // && logic->GetState() != CharacterLogic::state_die && logic->GetState() != CharacterLogic::state_dead)
 		{
 			SetUpdate(&Character::Work, ML_DYNAMIC3);
 			SetUpdate(&Character::UpdatePhysics, ML_DYNAMIC2);
-			
-			if (IsPlayer()) SetUpdate(&Character::UpdatePhysObj, ML_EXECUTE1);
+
+			if (IsPlayer())
+				SetUpdate(&Character::UpdatePhysObj, ML_EXECUTE1);
 
 			if (controller->AllowRestartAnim())
 			{
-				if(animation && !ragdoll)
+				if (animation && !ragdoll)
 				{
 					animation->Start();
 				}
@@ -1906,19 +1912,20 @@ void Character::Activate(bool isActive)
 			DelUpdate(&Character::Work);
 			DelUpdate(&Character::UpdatePhysics);
 
-			if (IsPlayer()) DelUpdate(&Character::UpdatePhysObj);
-		}		
+			if (IsPlayer())
+				DelUpdate(&Character::UpdatePhysObj);
+		}
 	}
 
-	if(!logic->IsActor())
+	if (!logic->IsActor())
 	{
-		physics->Activate(isActive);		
+		physics->Activate(isActive);
 	}
 	else
 	{
-		physics->Activate(bColideWhenActor&&isActive);
-		//ResetActor();
-		//UpdateActor(0);
+		physics->Activate(bColideWhenActor && isActive);
+		// ResetActor();
+		// UpdateActor(0);
 	}
 
 	if (isActive && !logic->IsActor())
@@ -1927,10 +1934,10 @@ void Character::Activate(bool isActive)
 	}
 
 	arbiter->Activate(this, isActive);
-		
+
 	bodyparts.Activate(isActive, &Sound());
 
-	finder->Activate(isActive);	
+	finder->Activate(isActive);
 
 	activeProcess = false;
 }
@@ -1959,21 +1966,22 @@ float Character::GetMaxHP()
 	return logic->GetMaxHP();
 }
 
-
 //Добавить отладочное сообщение
-void _cdecl Character::DebugMessage(dword color, const char * format, ...)
+void _cdecl Character::DebugMessage(dword color, const char *format, ...)
 {
 #ifndef NO_CONSOLE
-	if(debugMessages >= 8)
+	if (debugMessages >= 8)
 	{
-		for(long i = 0; i < debugMessages - 1; i++)
+		for (long i = 0; i < debugMessages - 1; i++)
 		{
 			debugMessages[i] = debugMessages[i + 1];
 		}
-	}else{
+	}
+	else
+	{
 		debugMessages.Add();
 	}
-	DebugMessageInfo & dm = debugMessages[debugMessages - 1];
+	DebugMessageInfo &dm = debugMessages[debugMessages - 1];
 	dm.color = color;
 	crt_vsnprintf(dm.str, sizeof(dm.str), format, (char *)((&format) + 1));
 	dm.str[sizeof(dm.str) - 1] = 0;
@@ -1983,23 +1991,29 @@ void _cdecl Character::DebugMessage(dword color, const char * format, ...)
 
 void Character::CheckRenderState()
 {
-	if (!seaReflection && !shadowReceive && !shadowCast && !seaRefraction) return;
-	if (!pattern) return;
-
+	if (!seaReflection && !shadowReceive && !shadowCast && !seaRefraction)
+		return;
+	if (!pattern)
+		return;
 
 	if (!IsShow())
 	{
-		if (seaReflection) Unregistry(MG_SEAREFLECTION);
-		if (seaRefraction) Unregistry(MG_SEAREFRACTION);
-		if (shadowCast) Unregistry(MG_SHADOWCAST);
-		if (shadowReceive) Unregistry(MG_SHADOWDONTRECEIVE);		
+		if (seaReflection)
+			Unregistry(MG_SEAREFLECTION);
+		if (seaRefraction)
+			Unregistry(MG_SEAREFRACTION);
+		if (shadowCast)
+			Unregistry(MG_SHADOWCAST);
+		if (shadowReceive)
+			Unregistry(MG_SHADOWDONTRECEIVE);
 	}
 
 	Vector pos;
 
 	if (hips_boneIdx == -1)
 	{
-		if (!currentModel) return;
+		if (!currentModel)
+			return;
 
 		pos = (currentModel->GetLocalBound().vMin + currentModel->GetLocalBound().vMax) * 0.5f;
 	}
@@ -2031,7 +2045,7 @@ void Character::CheckRenderState()
 	}
 
 	if (seaRefraction)
-	{		
+	{
 		if (bRefractGrRegistred)
 		{
 			if (pattern->fDistReflect + 1 < dist_to_cam)
@@ -2048,12 +2062,12 @@ void Character::CheckRenderState()
 				bRefractGrRegistred = true;
 			}
 		}
-
 	}
 
 	float fDstDhd = pattern->fDistShadow;
-	if (fDistShadow>0.01f) fDstDhd = fDistShadow;
-		
+	if (fDistShadow > 0.01f)
+		fDstDhd = fDistShadow;
+
 	/*if (shadowReceive || shadowCast)
 	{
 		if (bShadowGrRegistred)
@@ -2093,7 +2107,7 @@ void _cdecl Character::Work(float dltTime, long level)
 {
 	killsPerSecond = Max(0.0f, killsPerSecond - dltTime * 0.25f);
 
-	if (dltTime<0.0001f)
+	if (dltTime < 0.0001f)
 	{
 		if (IsPlayer())
 		{
@@ -2105,15 +2119,15 @@ void _cdecl Character::Work(float dltTime, long level)
 
 	if (IsPlayer())
 	{
-		/*arbiter->Find(*this, 0.05f, 15.55f, false, -PI*0.3f, PI*0.3f, 0.5f);	
+		/*arbiter->Find(*this, 0.05f, 15.55f, false, -PI*0.3f, PI*0.3f, 0.5f);
 		array<CharacterFind> & find = arbiter->find;
-			
+
 		for(long i = 0; i < find; i++)
 		{
-			Render().DrawSphere(find[i].chr->physics->GetPos(), 1.0f, 0xff00ffff);			
+			Render().DrawSphere(find[i].chr->physics->GetPos(), 1.0f, 0xff00ffff);
 		}*/
-	
-		if (api->DebugKeyState('M','G') && mg_params)
+
+		if (api->DebugKeyState('M', 'G') && mg_params)
 		{
 			if (buttonMG->IfMissionTime())
 			{
@@ -2123,7 +2137,7 @@ void _cdecl Character::Work(float dltTime, long level)
 			{
 				buttonMG->SetMissionTime(mg_params->GetMissionTime(true));
 			}
-	
+
 			Sleep(200);
 		}
 	}
@@ -2154,9 +2168,9 @@ void _cdecl Character::Work(float dltTime, long level)
 		}
 
 		if (pair_minigame[0])
-		{			
+		{
 			anim = pair_minigame[0]->animation->GetCurAnimation();
-			
+
 			const char* node2 = anim->CurrentNode();
 
 			if (api->DebugKeyState('V'))
@@ -2174,8 +2188,8 @@ void _cdecl Character::Work(float dltTime, long level)
 				{
 					api->Trace("ID Player : Node %s, TimeEvent Disabled",node1);
 				}
-				
-				
+
+
 				if (pair_minigame[0]->events->IsEnableTimeEvent())
 				{
 					api->Trace("        : Node %s, TimeEvent Enabled",node2);
@@ -2186,31 +2200,30 @@ void _cdecl Character::Work(float dltTime, long level)
 				}
 			}
 
-			Assert(string::IsEqual(node1,node2));			
-		}		
+			Assert(string::IsEqual(node1,node2));
+		}
 	}*/
 
 	was_showed = false;
 
-	CheckRenderState();	
+	CheckRenderState();
 
 	/*if (IsPlayer())
 	{
 		if (api->DebugKeyState('B'))
 		{
-			logic->autoZoom->Activate(true);			
+			logic->autoZoom->Activate(true);
 		}
-		
+
 		if (api->DebugKeyState('V'))
 		{
-			logic->autoZoom->Activate(false);			
+			logic->autoZoom->Activate(false);
 		}
 	}*/
 
-	
 	if (IsPlayer())
 	{
-		dltTime *= logic->GetTimeScale();		
+		dltTime *= logic->GetTimeScale();
 	}
 
 	if (flyCloud)
@@ -2221,42 +2234,42 @@ void _cdecl Character::Work(float dltTime, long level)
 		flyCloud->SetPosition(mat.pos);
 	}
 
-
-	if (logic->is_attached>0)
+	if (logic->is_attached > 0)
 	{
-		if (logic->is_attached>1) logic->is_attached--;		
+		if (logic->is_attached > 1)
+			logic->is_attached--;
 		return;
-	}	
+	}
 
 	if (shadowModel.scene)
 	{
 		Matrix mtx1(true);
-		physics->GetMatrixWithBoneOffset(mtx1);		
+		physics->GetMatrixWithBoneOffset(mtx1);
 
 		currentModel = model.scene;
 
 		Vector cam_pos = Render().GetView().GetCamPos();
 
-		Matrix mProj = Render().GetProjection();		
+		Matrix mProj = Render().GetProjection();
 
 		float k = 1 / (mProj.m[0][0] * DEF_CAM_FOV);
 
 		if (pattern)
 		{
-			if ((cam_pos-mtx1.pos).GetLengthXZ2()*k*k>pattern->fLODDist)
+			if ((cam_pos - mtx1.pos).GetLengthXZ2() * k * k > pattern->fLODDist)
 			{
 				currentModel = shadowModel.scene;
 			}
 		}
 	}
 
-	if (logic->PairModeAllowed(false,false))
+	if (logic->PairModeAllowed(false, false))
 	{
 		fTimeInFatality += dltTime;
-	}	
+	}
 
 	if (!logic->IsActor())
-	{		
+	{
 		Matrix boneMatrix(true);
 		physics->GetModelMatrix(boneMatrix);
 
@@ -2265,17 +2278,17 @@ void _cdecl Character::Work(float dltTime, long level)
 			physics->GetMatrixWithBoneOffset(boneMatrix);
 		}
 
-		//Render().DrawMatrix(boneMatrix);
+		// Render().DrawMatrix(boneMatrix);
 
-		float fWaterLevel = IWaterLevel::GetWaterLevel(Mission(), waterLevel);		
+		float fWaterLevel = IWaterLevel::GetWaterLevel(Mission(), waterLevel);
 
-		if (boneMatrix.pos.y < -2.0f+fWaterLevel || boneMatrix.pos.y < -900.0f)
+		if (boneMatrix.pos.y < -2.0f + fWaterLevel || boneMatrix.pos.y < -900.0f)
 		{
 			physics->SetPos(boneMatrix.pos);
 
 			physics->GetModelMatrix(boneMatrix);
 			model.scene->SetTransform(boneMatrix);
-			
+
 			if (!arbiter->IsMultiplayer() && logic && logic->GetHP() > 0.0f)
 				ACHIEVEMENT_REACHED(arbiter->GetPlayer(), FISH_FOOD);
 
@@ -2286,23 +2299,23 @@ void _cdecl Character::Work(float dltTime, long level)
 			ReleaseFlyes();
 
 			return;
-		}		
+		}
 
-		//if (IsPlayer()) Render().Print(10,10,0xff00ff00,"%f %f",boneMatrix.pos.y,fWaterLevel);
+		// if (IsPlayer()) Render().Print(10,10,0xff00ff00,"%f %f",boneMatrix.pos.y,fWaterLevel);
 
 		if (boneMatrix.pos.y < fWaterLevel && !bWaterSpalshBorned && ragdoll)
 		{
 			bWaterSpalshBorned = true;
 
-			boneMatrix.pos.y = fWaterLevel;			
+			boneMatrix.pos.y = fWaterLevel;
 
-			IParticleSystem * p = null;	
+			IParticleSystem *p = null;
 
-			p = Particles().CreateParticleSystem("CharSplash");		
+			p = Particles().CreateParticleSystem("CharSplash");
 
-			if(p)
+			if (p)
 			{
-				p->Teleport(Matrix(Vector(0.0f), Vector(boneMatrix.pos.x,fWaterLevel,boneMatrix.pos.z)));
+				p->Teleport(Matrix(Vector(0.0f), Vector(boneMatrix.pos.x, fWaterLevel, boneMatrix.pos.z)));
 				p->AutoDelete(true);
 			}
 
@@ -2319,26 +2332,26 @@ void _cdecl Character::Work(float dltTime, long level)
 		Vector pos = mtx.pos;
 
 		Matrix mat;
-		mat.BuildView(cam_pos,pos,Vector(0,1,0));
+		mat.BuildView(cam_pos, pos, Vector(0, 1, 0));
 		mat.Inverse();
 		mat.pos = pos;
 		Sound().SetListenerMatrix(mat);
 	}
-	
-	//if (IsPlayer()) PushCharcters(dltTime,2.5f,true);
 
-	//if(controller && IsPlayer())
+	// if (IsPlayer()) PushCharcters(dltTime,2.5f,true);
+
+	// if(controller && IsPlayer())
 	//{
-	//	controller->Update(dltTime);			
-	//}	
+	//	controller->Update(dltTime);
+	// }
 
-	//ProfileTimer timer;
+	// ProfileTimer timer;
 
 	/*
 	if (bAutoReleaseRagdollOn)
 	{
 		fTimeToReleaseRagDoll -= dltTime;
-		
+
 		if (fTimeToReleaseRagDoll<0.0f)
 		{
 			bAutoReleaseRagdollOn = false;
@@ -2347,10 +2360,10 @@ void _cdecl Character::Work(float dltTime, long level)
 			ragdoll->Release();
 			ragdoll = NULL;
 		}
-	}		
+	}
 
 	if (bSelfDestructRagdoll&&ragdoll)
-	{	
+	{
 		if (rd_last_timeout>0)
 		{
 			rd_last_timeout -= dltTime;
@@ -2360,24 +2373,24 @@ void _cdecl Character::Work(float dltTime, long level)
 			Matrix mtx1(true);
 			physics->GetModelMatrix(mtx1);
 
-			Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+			Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 			mtx1 = joint_mat * mtx1;
 
 			Vector cur_rd_pos = mtx1.pos;
 
 			Vector dir = cur_rd_pos - rd_last_pos2;
-			float speed = dir.Normalize()/ (1/60.0f);			
-					
+			float speed = dir.Normalize()/ (1/60.0f);
+
 			Vector chr_pos;
 
-			if ((arbiter->IfAnyCharacer(this,cur_rd_pos,1.5f,chr_pos) && speed>2.0f)||			
+			if ((arbiter->IfAnyCharacer(this,cur_rd_pos,1.5f,chr_pos) && speed>2.0f)||
 				(((speed>0.25f && speed<3.5f) || (dir|rd_last_dir)<0.95f) && (rd_last_speed - speed)>0 && rd_inited))
-			{	
+			{
 				items->DropArmor(true);
 
 				//Рождаем эффекты
-				IParticleSystem * p = null;	
+				IParticleSystem * p = null;
 
 				p = Particles().CreateParticleSystem("ExplosionBomb");
 				Sound().Create3D("Bomb boom", cur_rd_pos, _FL_);
@@ -2390,14 +2403,14 @@ void _cdecl Character::Work(float dltTime, long level)
 
 				arbiter->Boom(logic->GetOffender(),cur_rd_pos,3.0f,400.0f,1.0f);
 				bSelfDestructRagdoll = false;
-			}		
+			}
 
-			float tst_speed = (cur_rd_pos - rd_last_pos).GetLength()/ (1/60.0f);		
+			float tst_speed = (cur_rd_pos - rd_last_pos).GetLength()/ (1/60.0f);
 
 			if (tst_speed>0.85f)
 			{
 				rd_last_pos2 = rd_last_pos;
-				rd_last_pos = mtx1.pos;			
+				rd_last_pos = mtx1.pos;
 
 				rd_last_dir = dir;
 
@@ -2406,25 +2419,25 @@ void _cdecl Character::Work(float dltTime, long level)
 				rd_inited = true;
 			}
 		}
-	}	
+	}
 
 	if (ragdoll && !logic->IsActor() && !ragdoll->IsFreezed())
-	{		
+	{
 		Matrix mtx1(true);
 		physics->GetModelMatrix(mtx1);
 
-		Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+		Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 		mtx1 = joint_mat * mtx1;
-		
+
 		Vector vDelta = vLastRagdollPos - mtx1.pos;
-		
+
 		vLastRagdollPos = mtx1.pos;
 
 		float speed = vDelta.Normalize()/ (1/60.0f);
 
-		//fTotalTimeToStandUp -= dltTime;		
-		
+		//fTotalTimeToStandUp -= dltTime;
+
 		//if (fTotalTimeToStandUp>0.0f)
 		//{
 			//speed = 0.0f;
@@ -2435,13 +2448,13 @@ void _cdecl Character::Work(float dltTime, long level)
 			fTimeToStandUp-=dltTime;
 
 			if (fTimeToStandUp<=0)
-			{				
-				if (logic->GetHP()>0.0f &&					
+			{
+				if (logic->GetHP()>0.0f &&
 					logic->GetState() != CharacterLogic::state_die &&
 					logic->GetState() != CharacterLogic::state_dead)
 				{
 					ActivateRagdoll(false,0.0f);
-					
+
 					if (joint_mat.vz.y>0)
 					{
 						animation->ActivateLink("StandUp",0.0f);
@@ -2449,10 +2462,10 @@ void _cdecl Character::Work(float dltTime, long level)
 					}
 					else
 					{
-						animation->ActivateLink("StandUp2",0.0f);					
+						animation->ActivateLink("StandUp2",0.0f);
 						fRotDlt=0;
 					}
-								
+
 					set_new_ay = true;
 					new_ay += fRotDlt;
 
@@ -2465,7 +2478,7 @@ void _cdecl Character::Work(float dltTime, long level)
 			}
 		}
 		else
-		{	
+		{
 			if (logic->GetHP()>0.0f)
 			{
 				fTimeToStandUp = 2.0f;
@@ -2473,30 +2486,31 @@ void _cdecl Character::Work(float dltTime, long level)
 			else
 			{
 				fTimeToStandUp = 3.0f;
-			}			
-		}		
+			}
+		}
 	}*/
-		
-	if(!logic->IsActor())
+
+	if (!logic->IsActor())
 	{
-		if(!logic->IsPairMode())
+		if (!logic->IsPairMode())
 		{
 			//Обновление логических параметров состояния
-			if(controller &&
-			   /*logic->GetState() != CharacterLogic::state_die &&
-			   logic->GetState() != CharacterLogic::state_dead &&*/
-			   logic->GetHP()>0 && !ragdoll)
-			{				
+			if (controller &&
+				/*logic->GetState() != CharacterLogic::state_die &&
+				logic->GetState() != CharacterLogic::state_dead &&*/
+				logic->GetHP() > 0 && !ragdoll)
+			{
 				controller->Update(dltTime);
 			}
 
 			//Если мертвы, запускаем счётчик смерти и деактивируемся
-			if((/*logic->GetState() == CharacterLogic::state_die ||
-			    logic->GetState() == CharacterLogic::state_dead ||*/
-			    logic->GetHP()<=0.0f) && !bDeadConterOn)
+			if ((/*logic->GetState() == CharacterLogic::state_die ||
+				 logic->GetState() == CharacterLogic::state_dead ||*/
+				 logic->GetHP() <= 0.0f) &&
+				!bDeadConterOn)
 			{
 				SetCharacterCoin(Character::chrcoin_none);
-				
+
 				DelUpdate(&Character::Draw);
 				SetUpdate(&Character::Draw, ML_ALPHA1);
 
@@ -2512,49 +2526,50 @@ void _cdecl Character::Work(float dltTime, long level)
 
 				if (arbiter->fly_manager.Ptr() && !IsPlayer())
 				{
-					flyCloud = arbiter->fly_manager.Ptr()->CreateFlys(1.2f,(int)RRnd(10,20));
+					flyCloud = arbiter->fly_manager.Ptr()->CreateFlys(1.2f, (int)RRnd(10, 20));
 				}
-				
+
 				bDeadConterOn = true;
 				// Vano: было 0.0f, сделал хак, иначе после переключений персов не было, а тени были
 				deadTime = -0.0001f;
 				deadBodyTime = 0.0f;
 
-				//Unregistry(MG_SHADOWCAST);
-				//Unregistry(MG_SHADOWRECEIVE);	
-				//Registry(MG_SHADOWDONTRECEIVE, (MOF_EVENT)&Character::ShadowDraw);
+				// Unregistry(MG_SHADOWCAST);
+				// Unregistry(MG_SHADOWRECEIVE);
+				// Registry(MG_SHADOWDONTRECEIVE, (MOF_EVENT)&Character::ShadowDraw);
 
-				//Show(IsShow());
-			}			
+				// Show(IsShow());
+			}
 		}
 		else
 		{
-			PushCharcters(dltTime,1.7f,true,false);			
-			
-			//physics->Move(dltTime);
+			PushCharcters(dltTime, 1.7f, true, false);
+
+			// physics->Move(dltTime);
 
 			//Обновление логических параметров состояния
-			if(controller &&
-			   logic->GetState() != CharacterLogic::state_die &&
-			   logic->GetState() != CharacterLogic::state_dead &&
-			   logic->GetHP()>0 && !ragdoll)
+			if (controller &&
+				logic->GetState() != CharacterLogic::state_die &&
+				logic->GetState() != CharacterLogic::state_dead &&
+				logic->GetHP() > 0 && !ragdoll)
 			{
-				//if (strcmp(controller->Name(),"Player")==0)
+				// if (strcmp(controller->Name(),"Player")==0)
 				{
 					controller->Update(dltTime);
-				}				
+				}
 			}
 
 			//Если ме
-			if((logic->GetState() == CharacterLogic::state_die||
-				logic->GetState() == CharacterLogic::state_dead ||
-				logic->GetHP()<=0.0f) && !bDeadConterOn && !logic->is_attached)
+			if ((logic->GetState() == CharacterLogic::state_die ||
+				 logic->GetState() == CharacterLogic::state_dead ||
+				 logic->GetHP() <= 0.0f) &&
+				!bDeadConterOn && !logic->is_attached)
 			{
 				SetUpdate(&Character::DeadTimer, ML_EXECUTE2);
 				if (!bVanishBody)
 					arbiter->AddDeadBody(*this);
 				LogicDebug("Death process");
-				
+
 				SetCharacterCoin(Character::chrcoin_none);
 
 				DelUpdate(&Character::Draw);
@@ -2567,7 +2582,7 @@ void _cdecl Character::Work(float dltTime, long level)
 
 				if (arbiter->fly_manager.Ptr() && !IsPlayer())
 				{
-					flyCloud = arbiter->fly_manager.Ptr()->CreateFlys(1.2f,(int)RRnd(10,20));
+					flyCloud = arbiter->fly_manager.Ptr()->CreateFlys(1.2f, (int)RRnd(10, 20));
 				}
 
 				bDeadConterOn = true;
@@ -2575,11 +2590,11 @@ void _cdecl Character::Work(float dltTime, long level)
 				deadTime = -0.0001f;
 				deadBodyTime = 0.0f;
 
-				//Unregistry(MG_SHADOWCAST);
-				//Unregistry(MG_SHADOWRECEIVE);
-				//Registry(MG_SHADOWDONTRECEIVE, (MOF_EVENT)&Character::ShadowDraw);				
+				// Unregistry(MG_SHADOWCAST);
+				// Unregistry(MG_SHADOWRECEIVE);
+				// Registry(MG_SHADOWDONTRECEIVE, (MOF_EVENT)&Character::ShadowDraw);
 
-				//Show(IsShow());
+				// Show(IsShow());
 			}
 		}
 
@@ -2587,68 +2602,65 @@ void _cdecl Character::Work(float dltTime, long level)
 	}
 	else
 	{
-		if(controller && IsPlayer())
+		if (controller && IsPlayer())
 		{
-			controller->Update(dltTime);			
-		}		
+			controller->Update(dltTime);
+		}
 	}
-
 
 	Matrix mtx(true);
 	physics->GetModelMatrix(mtx);
 	items->Update(dltTime);
-	events->Update(mtx, dltTime);	
-	
+	events->Update(mtx, dltTime);
+
 	//Моргание глазами
-	bodyparts.SetDead(IsDead());	
+	bodyparts.SetDead(IsDead());
 
-	finder->SetMatrix(mtx);		
+	finder->SetMatrix(mtx);
 
-	//timer.AddToCounter("Char Work");
+	// timer.AddToCounter("Char Work");
 
-
-	//hairblender.SetDelltaPos(physics->dltPos);
-	//hairblender.SetMatrix(mtx);
-
+	// hairblender.SetDelltaPos(physics->dltPos);
+	// hairblender.SetMatrix(mtx);
 
 	Matrix mt = mtx;
-	//mt.pos = 0.0f;
+	// mt.pos = 0.0f;
 	bodyparts.SetMatrix(mt);
 	bodyparts.SetDeltaPos(physics->dltPos);
-
 
 	if (IsPlayer())
 	{
 		if (greedy)
 		{
-			greedy->SetPosition( physics->GetPos() + Vector(0.0f,1.0f,0.0f));
-			//Render().DrawSphere( greedy->GetPosition(),0.5f,0xff00ff00);
+			greedy->SetPosition(physics->GetPos() + Vector(0.0f, 1.0f, 0.0f));
+			// Render().DrawSphere( greedy->GetPosition(),0.5f,0xff00ff00);
 		}
 	}
 }
 
 void _cdecl Character::UpdatePhysics(float dltTime, long level)
 {
-	if (dltTime<1e-30f)
+	if (dltTime < 1e-30f)
 	{
 		physics->dltPos = 0.0f;
 		return;
 	}
 
-	if(!logic->IsAttack())
+	if (!logic->IsAttack())
 	{
 		physics->TurnUpdate(dltTime);
 	}
 
-	if(!logic->IsActor())
-	{		
-		if (!ragdoll) physics->Move(dltTime);		
+	if (!logic->IsActor())
+	{
+		if (!ragdoll)
+			physics->Move(dltTime);
 	}
 	else
-	{		
+	{
 		if (bColideWhenActor)
 		{
-			PushCharcters(dltTime,1.7f,true,false);
+			PushCharcters(dltTime, 1.7f, true, false);
 
 			if (!actorTimeLine)
 			{
@@ -2672,7 +2684,7 @@ void _cdecl Character::UpdatePhysics(float dltTime, long level)
 		{
 			if (IsPlayer())
 			{
-				((PlayerController*)controller)->BrokeWeapon(true);
+				((PlayerController *)controller)->BrokeWeapon(true);
 			}
 
 			logic->slave = null;
@@ -2689,7 +2701,7 @@ void _cdecl Character::UpdatePhysObj(float dltTime, long level)
 {
 	if (IsPlayer() && controller)
 	{
-		((PlayerController*)controller)->UpdatePhysObject();
+		((PlayerController *)controller)->UpdatePhysObject();
 	}
 }
 
@@ -2697,27 +2709,28 @@ void Character::ReCalcMatrices()
 {
 	bool reCalc = false;
 
-	if(!logic->IsActor())
-	{		
+	if (!logic->IsActor())
+	{
 		reCalc = true;
 	}
 	else
-	{		
+	{
 		if (bColideWhenActor)
-		{			
+		{
 			if (!actorTimeLine)
 			{
 				reCalc = true;
-			}			
-		}		
+			}
+		}
 	}
 
-	if (reCalc) physics->ReCalcMatrices();
+	if (reCalc)
+		physics->ReCalcMatrices();
 }
 
 //Нарисовать модельку персонажа
 void _cdecl Character::Draw(float dltTime, long level)
-{	
+{
 	if (oneFrameHide)
 		return;
 
@@ -2727,9 +2740,9 @@ void _cdecl Character::Draw(float dltTime, long level)
 	}*/
 
 	Matrix mtx(true);
-	if(isHitLight)
+	if (isHitLight)
 	{
-		hitLight += dltTime*22.0f;
+		hitLight += dltTime * 22.0f;
 		if (hitLight > 1.0f)
 		{
 			hitLight = 1.0f;
@@ -2738,92 +2751,91 @@ void _cdecl Character::Draw(float dltTime, long level)
 	}
 	else
 	{
-		hitLight -= dltTime*8.0f;
-		if (hitLight < 0.0f) hitLight = 0.0f;
-	}	
+		hitLight -= dltTime * 8.0f;
+		if (hitLight < 0.0f)
+			hitLight = 0.0f;
+	}
 
 	//Рисуем персонажа
-	if(currentModel && bDraw)	
+	if (currentModel && bDraw)
 	{
 		physics->GetModelMatrix(mtx);
 		float a = 1.0f;
-		
-		if (!IsPlayer() && logic->GetSide()!=CharacterLogic::s_boss)
-		{		
-			if (deadTime > 0.0f && GetDeathTime()-deadTime<CHARACTER_BODYDISAPEAR)
+
+		if (!IsPlayer() && logic->GetSide() != CharacterLogic::s_boss)
+		{
+			if (deadTime > 0.0f && GetDeathTime() - deadTime < CHARACTER_BODYDISAPEAR)
 			{
 				a = GetAlpha();
 
-				if (a<0.525f)
+				if (a < 0.525f)
 				{
 					Unregistry(MG_SHADOWRECEIVE);
-				}			
+				}
 			}
 		}
 
-		Color userColor(hitLight*0.6f+add_color.r, hitLight*0.4f+add_color.g, hitLight*0.3f+add_color.b, a);
+		Color userColor(hitLight * 0.6f + add_color.r, hitLight * 0.4f + add_color.g, hitLight * 0.3f + add_color.b, a);
 
 		if (bAutoReleaseRagdollOn && !set_new_ay)
-		{		
-			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);			
+		{
+			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);
 
 			Matrix mtx2;
 
 			mtx2.pos = -joint_mat.pos;
 			mtx2.pos.y = 0;
 
-			Matrix mtx3;			
-			mtx3.RotateY(-joint_mat.vy.GetAY()+fRotDlt);
+			Matrix mtx3;
+			mtx3.RotateY(-joint_mat.vy.GetAY() + fRotDlt);
 
 			mtx = mtx2 * mtx3 * mtx;
 		}
 
-		if (currentModel!=model.scene)
+		if (currentModel != model.scene)
 		{
 			model.scene->SetTransform(mtx);
 		}
-			
-		//Render().DrawMatrix(mtx);
-		DrawModel( mtx, currentModel, true, &userColor);		
+
+		// Render().DrawMatrix(mtx);
+		DrawModel(mtx, currentModel, true, &userColor);
 
 		currentModel->SetUserColor(Color(0xff000000L));
-		//Render().DrawSphere(mtx.pos,0.15f);		
+		// Render().DrawSphere(mtx.pos,0.15f);
 	}
 
-
-	if(showCollider)
+	if (showCollider)
 	{
 		physics->GetColliderMatrix(mtx);
-		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight()*0.5f, physics->GetRadius());
+		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius());
 		Render().DrawSphere(mtx, 0x9fc0c0ff);
 		Render().Print(mtx.pos + Vector(0.0f, 1.6f, 0.0f), 10.0f, 1.0f, 0xffffffff, "Id: %s", GetObjectID().c_str());
 	}
 
-	if( pattern && pattern->cHairParams.NotEmpty() )
+	if (pattern && pattern->cHairParams.NotEmpty())
 	{
 		bodyparts.Draw(dltTime);
-	}	
+	}
 
-	for (dword i=0;i<BodyParts.Size();i++)
+	for (dword i = 0; i < BodyParts.Size(); i++)
 	{
 		Color userColor(0.0f, 0.0f, 0.0f, GetAlpha());
 
 		if (BodyParts[i].pPhysBox || BodyParts[i].pPhysCapsule)
 		{
-			const GMXBoundBox & volume = BodyParts[i].PartModel.scene->GetLocalBound();
-		
-			Vector size = volume.vMax - volume.vMin;		
+			const GMXBoundBox &volume = BodyParts[i].PartModel.scene->GetLocalBound();
+
+			Vector size = volume.vMax - volume.vMin;
 			Vector center = volume.vMin + (size * 0.5f);
 
 			Matrix mat;
-			mat.pos=-center;
+			mat.pos = -center;
 
 			if (BodyParts[i].pPhysBox)
 			{
 				BodyParts[i].pPhysBox->GetTransform(mtx);
 			}
-			else
-			if (BodyParts[i].pPhysCapsule)
+			else if (BodyParts[i].pPhysCapsule)
 			{
 				BodyParts[i].pPhysCapsule->GetTransform(mtx);
 			}
@@ -2838,25 +2850,27 @@ void _cdecl Character::Draw(float dltTime, long level)
 	}
 
 #ifndef NO_CONSOLE
-	if(debugMessages)
+	if (debugMessages)
 	{
 		float alpha = 1.0f;
 		debugMessageShowTime -= dltTime;
-		if(debugMessageShowTime < 0.0f)
+		if (debugMessageShowTime < 0.0f)
 		{
-			if(debugMessageShowTime <= -1.0f)
+			if (debugMessageShowTime <= -1.0f)
 			{
 				debugMessages.DelIndex(0);
 				debugMessageShowTime = CHARACTER_SHOWMSGTIME;
-			}else{
+			}
+			else
+			{
 				alpha = 1.0f + debugMessageShowTime;
 			}
 		}
 		Vector pos = physics->GetPos() + Vector(0.0f, physics->GetHeight() + 0.2f, 0.0f);
-		for(long i = 0; i < debugMessages; i++)
+		for (long i = 0; i < debugMessages; i++)
 		{
 			dword color = debugMessages[i].color;
-			if(i == 0)
+			if (i == 0)
 			{
 				Color c(color);
 				c.alpha *= alpha;
@@ -2864,22 +2878,18 @@ void _cdecl Character::Draw(float dltTime, long level)
 			}
 			Render().Print(pos, 100.0f, (float)(-i), color, "%s", debugMessages[i].str);
 		}
-	}	
+	}
 
-#endif	
+#endif
 
 	if (need_post_grab_weapon)
 	{
-		need_post_grab_weapon = false;	
+		need_post_grab_weapon = false;
 
-		((PlayerController*)controller)->TakeWeapon(pgw_victim->items->items[pgw_wp_index].weapon_type,
-													pgw_victim->items->items[pgw_wp_index].model_name,										
-													pgw_victim->items->items[pgw_wp_index].model_part1_name,
-													pgw_victim->items->items[pgw_wp_index].model_part2_name,
-													pgw_victim->items->items[pgw_wp_index].tip_id, pgw_blend_time,pgw_start_node);
-	}		
+		((PlayerController *)controller)->TakeWeapon(pgw_victim->items->items[pgw_wp_index].weapon_type, pgw_victim->items->items[pgw_wp_index].model_name, pgw_victim->items->items[pgw_wp_index].model_part1_name, pgw_victim->items->items[pgw_wp_index].model_part2_name, pgw_victim->items->items[pgw_wp_index].tip_id, pgw_blend_time, pgw_start_node);
+	}
 
-	GetUp( dltTime, level);
+	GetUp(dltTime, level);
 }
 
 void Character::SelfBlowBombardier()
@@ -2887,7 +2897,7 @@ void Character::SelfBlowBombardier()
 	Matrix mtx1(true);
 	physics->GetModelMatrix(mtx1);
 
-	Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+	Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 	mtx1 = joint_mat * mtx1;
 
@@ -2896,20 +2906,20 @@ void Character::SelfBlowBombardier()
 	items->DropArmor(true);
 
 	//Рождаем эффекты
-	IParticleSystem * p = null;	
+	IParticleSystem *p = null;
 
 	p = Particles().CreateParticleSystem("ExplosionBomb");
 	Sound().Create3D("bmb_blast", cur_rd_pos, _FL_);
 
-	if(p)
+	if (p)
 	{
 		p->Teleport(Matrix(Vector(0.0f), cur_rd_pos));
 		p->AutoDelete(true);
 	}
 
-	arbiter->Boom(logic->GetOffender(),DamageReceiver::ds_bomb, cur_rd_pos, 3.0f, 600.0f, 1.0f, this);
+	arbiter->Boom(logic->GetOffender(), DamageReceiver::ds_bomb, cur_rd_pos, 3.0f, 600.0f, 1.0f, this);
 	bSelfDestructRagdoll = false;
-}		
+}
 
 void _cdecl Character::GetUp(float dltTime, long level)
 {
@@ -2917,7 +2927,7 @@ void _cdecl Character::GetUp(float dltTime, long level)
 	{
 		fTimeToReleaseRagDoll -= dltTime;
 
-		if (fTimeToReleaseRagDoll<0.0f)
+		if (fTimeToReleaseRagDoll < 0.0f)
 		{
 			bAutoReleaseRagdollOn = false;
 			fTimeToReleaseRagDoll = 0.0f;
@@ -2925,11 +2935,11 @@ void _cdecl Character::GetUp(float dltTime, long level)
 			ragdoll->Release();
 			ragdoll = NULL;
 		}
-	}		
+	}
 
-	if (bSelfDestructRagdoll&&ragdoll)
-	{	
-		if (rd_last_timeout>0)
+	if (bSelfDestructRagdoll && ragdoll)
+	{
+		if (rd_last_timeout > 0)
 		{
 			rd_last_timeout -= dltTime;
 		}
@@ -2938,30 +2948,30 @@ void _cdecl Character::GetUp(float dltTime, long level)
 			Matrix mtx1(true);
 			physics->GetModelMatrix(mtx1);
 
-			Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+			Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 			mtx1 = joint_mat * mtx1;
 
 			Vector cur_rd_pos = mtx1.pos;
 
 			Vector dir = cur_rd_pos - rd_last_pos2;
-			float speed = dir.Normalize()/ (1/60.0f);			
+			float speed = dir.Normalize() / (1 / 60.0f);
 
 			Vector chr_pos;
 
-			// VANO: было if ((arbiter->IfAnyCharacer(this,cur_rd_pos,1.5f,chr_pos) && speed>2.0f)||			
-			if ((arbiter->IfAnyCharacer(this,cur_rd_pos,2.5f,chr_pos))||			
-				(((speed>0.25f && speed<3.5f) || (dir|rd_last_dir)<0.95f) && (rd_last_speed - speed)>0 && rd_inited))
-			{	
+			// VANO: было if ((arbiter->IfAnyCharacer(this,cur_rd_pos,1.5f,chr_pos) && speed>2.0f)||
+			if ((arbiter->IfAnyCharacer(this, cur_rd_pos, 2.5f, chr_pos)) ||
+				(((speed > 0.25f && speed < 3.5f) || (dir | rd_last_dir) < 0.95f) && (rd_last_speed - speed) > 0 && rd_inited))
+			{
 				SelfBlowBombardier();
 			}
 
-			float tst_speed = (cur_rd_pos - rd_last_pos).GetLength()/ (1/60.0f);		
+			float tst_speed = (cur_rd_pos - rd_last_pos).GetLength() / (1 / 60.0f);
 
-			if (tst_speed>0.85f)
+			if (tst_speed > 0.85f)
 			{
 				rd_last_pos2 = rd_last_pos;
-				rd_last_pos = mtx1.pos;			
+				rd_last_pos = mtx1.pos;
 
 				rd_last_dir = dir;
 
@@ -2970,14 +2980,14 @@ void _cdecl Character::GetUp(float dltTime, long level)
 				rd_inited = true;
 			}
 		}
-	}	
+	}
 
 	if (ragdoll && !logic->IsActor() && !ragdoll->IsFreezed())
 	{
 		Matrix mtx1(true);
 		physics->GetModelMatrix(mtx1);
 
-		Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+		Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 		mtx1 = joint_mat * mtx1;
 
@@ -2985,42 +2995,42 @@ void _cdecl Character::GetUp(float dltTime, long level)
 
 		vLastRagdollPos = mtx1.pos;
 
-		float speed = vDelta.Normalize()/ (1/60.0f);
+		float speed = vDelta.Normalize() / (1 / 60.0f);
 
-		//fTotalTimeToStandUp -= dltTime;		
+		// fTotalTimeToStandUp -= dltTime;
 
-		//if (fTotalTimeToStandUp>0.0f)
+		// if (fTotalTimeToStandUp>0.0f)
 		//{
-		//speed = 0.0f;
-		//}
+		// speed = 0.0f;
+		// }
 
-		if (speed<3.0f)
+		if (speed < 3.0f)
 		{
-			fTimeToStandUp-=dltTime;
+			fTimeToStandUp -= dltTime;
 
-			if (fTimeToStandUp<=0)
-			{				
-				if (logic->GetHP()>0.0f &&					
+			if (fTimeToStandUp <= 0)
+			{
+				if (logic->GetHP() > 0.0f &&
 					logic->GetState() != CharacterLogic::state_die &&
 					logic->GetState() != CharacterLogic::state_dead)
 				{
-					ActivateRagdoll(false,0.0f);
+					ActivateRagdoll(false, 0.0f);
 
-					if (joint_mat.vz.y>0)
+					if (joint_mat.vz.y > 0)
 					{
-						animation->ActivateLink("StandUp",0.0f);
-						fRotDlt=PI;
+						animation->ActivateLink("StandUp", 0.0f);
+						fRotDlt = PI;
 					}
 					else
 					{
-						animation->ActivateLink("StandUp2",0.0f);					
-						fRotDlt=0;
+						animation->ActivateLink("StandUp2", 0.0f);
+						fRotDlt = 0;
 					}
 
 					set_new_ay = true;
 					new_ay += fRotDlt;
 
-					//physics->SetAy(physics->GetAy()+fRotDlt);
+					// physics->SetAy(physics->GetAy()+fRotDlt);
 				}
 				else
 				{
@@ -3036,21 +3046,21 @@ void _cdecl Character::GetUp(float dltTime, long level)
 			}
 		}
 		else
-		{	
-			float standUpTimes[10] = { 0.75f, 1.2f, 2.1f, 0.9f, 1.5f, 1.0f, 1.8f, 1.35f, 2.3f, 1.6f };
+		{
+			float standUpTimes[10] = {0.75f, 1.2f, 2.1f, 0.9f, 1.5f, 1.0f, 1.8f, 1.35f, 2.3f, 1.6f};
 			static int standUpIndex = 0;
 			// Vano: время вставания с пола
-			if (logic->GetHP()>0.0f)
+			if (logic->GetHP() > 0.0f)
 			{
-				fTimeToStandUp = standUpTimes[standUpIndex % ARRSIZE(standUpTimes)];//RRnd(0.8f, 2.2f);
+				fTimeToStandUp = standUpTimes[standUpIndex % ARRSIZE(standUpTimes)]; // RRnd(0.8f, 2.2f);
 			}
 			else
 			{
-				fTimeToStandUp = standUpTimes[standUpIndex % ARRSIZE(standUpTimes)];//RRnd(0.8f, 3.0f);
-			}			
+				fTimeToStandUp = standUpTimes[standUpIndex % ARRSIZE(standUpTimes)]; // RRnd(0.8f, 3.0f);
+			}
 			standUpIndex++;
-		}		
-	}	
+		}
+	}
 
 	if (set_new_ay)
 	{
@@ -3058,7 +3068,7 @@ void _cdecl Character::GetUp(float dltTime, long level)
 
 		if (!physics->IsActive())
 		{
-			//physics->SetPos(new_pos);
+			// physics->SetPos(new_pos);
 			physics->Activate(true, &new_pos);
 		}
 
@@ -3069,9 +3079,10 @@ void _cdecl Character::GetUp(float dltTime, long level)
 //Нарисовать полупрозрачную модельку персонажа
 void _cdecl Character::DrawTransparency(float dltTime, long level)
 {
-	if(!EditMode_IsVisible()) return;
+	if (!EditMode_IsVisible())
+		return;
 	//Рисуем персонажа
-	if(currentModel)
+	if (currentModel)
 	{
 		Matrix mtx(true);
 		physics->GetModelMatrix(mtx);
@@ -3080,46 +3091,48 @@ void _cdecl Character::DrawTransparency(float dltTime, long level)
 }
 
 //Нарисовать модельку персонажа для тени
-void _cdecl Character::ShadowInfo(const char * group, MissionObject * sender)
+void _cdecl Character::ShadowInfo(const char *group, MissionObject *sender)
 {
-	if(sender)
+	if (sender)
 	{
 		//Матрица модельки
 		Matrix mtx(true);
 		physics->GetModelMatrix(mtx);
 		//Моделька
-		IGMXScene * mdl = shadowModel.scene;
-		if(!mdl) mdl = model.scene;
-		if(!mdl) return;		
+		IGMXScene *mdl = shadowModel.scene;
+		if (!mdl)
+			mdl = model.scene;
+		if (!mdl)
+			return;
 
 		if (bAutoReleaseRagdollOn)
-		{				
-			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);		
+		{
+			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);
 
-			Matrix mtx2(true);		
+			Matrix mtx2(true);
 
 			mtx2.pos = -joint_mat.pos;
 			mtx2.pos.y = 0;
 
 			Matrix mtx3;
-			mtx3.RotateY(-joint_mat.vy.GetAY()+fRotDlt);
+			mtx3.RotateY(-joint_mat.vy.GetAY() + fRotDlt);
 
 			mtx = mtx2 * mtx3 * mtx;
 		}
 
 		mdl->SetTransform(mtx);
-		const Vector & vMin = mdl->GetBound().vMin;
-		const Vector & vMax = mdl->GetBound().vMax;
+		const Vector &vMin = mdl->GetBound().vMin;
+		const Vector &vMax = mdl->GetBound().vMax;
 		((MissionShadowCaster *)sender)->AddObject(this, &Character::ShadowReciveDraw, vMin, vMax);
 	}
 }
 
 void Character::DrawShadowModel(bool recive_pass)
 {
-	Matrix mtx(true);	
+	Matrix mtx(true);
 
-	IGMXScene * mdl;
-	
+	IGMXScene *mdl;
+
 	if (recive_pass)
 	{
 		mdl = model.scene;
@@ -3127,30 +3140,31 @@ void Character::DrawShadowModel(bool recive_pass)
 	else
 	{
 		mdl = shadowModel.scene;
-		if(!mdl) mdl = model.scene;
+		if (!mdl)
+			mdl = model.scene;
 	}
 
 	//Рисуем персонажа
-	if(bDraw)		
+	if (bDraw)
 	{
-		physics->GetModelMatrix(mtx);				
+		physics->GetModelMatrix(mtx);
 
 		if (bAutoReleaseRagdollOn)
-		{		
-			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);			
+		{
+			Matrix joint_mat = GetBoneMatrix(hips_boneIdx);
 
 			Matrix mtx2;
 
 			mtx2.pos = -joint_mat.pos;
 			mtx2.pos.y = 0;
 
-			Matrix mtx3;			
-			mtx3.RotateY(-joint_mat.vy.GetAY()+fRotDlt);
+			Matrix mtx3;
+			mtx3.RotateY(-joint_mat.vy.GetAY() + fRotDlt);
 
 			mtx = mtx2 * mtx3 * mtx;
-		}		
+		}
 
-		DrawModel( mtx, mdl, true);
+		DrawModel(mtx, mdl, true);
 
 		if (recive_pass)
 		{
@@ -3160,7 +3174,7 @@ void Character::DrawShadowModel(bool recive_pass)
 }
 
 //Нарисовать модельку персонажа для тени
-void _cdecl Character::ShadowDraw(const char * group, MissionObject * sender)
+void _cdecl Character::ShadowDraw(const char *group, MissionObject *sender)
 {
 	DrawShadowModel(true);
 
@@ -3168,7 +3182,7 @@ void _cdecl Character::ShadowDraw(const char * group, MissionObject * sender)
 }
 
 //Нарисовать модельку персонажа для прохода получения тени
-void _cdecl Character::ShadowReciveDraw(const char * group, MissionObject * sender)
+void _cdecl Character::ShadowReciveDraw(const char *group, MissionObject *sender)
 {
 	DrawShadowModel(false);
 
@@ -3176,19 +3190,20 @@ void _cdecl Character::ShadowReciveDraw(const char * group, MissionObject * send
 }
 
 //Нарисовать модельку персонажа для тени
-void _cdecl Character::ReflectionDraw(const char * group, MissionObject * sender)
+void _cdecl Character::ReflectionDraw(const char *group, MissionObject *sender)
 {
 	DrawShadowModel(false);
 }
 
-
 //Нарисовать след за шпагой
 void _cdecl Character::DrawTrail(float dltTime, long level)
 {
-	if(EditMode_IsOn())
+	if (EditMode_IsOn())
 	{
-		if(!EditMode_IsSelect()) return;
-		if(!EditMode_IsVisible()) return;		
+		if (!EditMode_IsSelect())
+			return;
+		if (!EditMode_IsVisible())
+			return;
 	}
 	Matrix mtx(true);
 	physics->GetModelMatrix(mtx);
@@ -3197,16 +3212,19 @@ void _cdecl Character::DrawTrail(float dltTime, long level)
 
 void _cdecl Character::DrawFlares(float dltTime, long level)
 {
-	if(EditMode_IsOn())
-	{		
-		if(!EditMode_IsVisible()) return;		
+	if (EditMode_IsOn())
+	{
+		if (!EditMode_IsVisible())
+			return;
 	}
 	else
 	{
-		if (!IsShow()) return;		
-		if (!IsActive()) return;
+		if (!IsShow())
+			return;
+		if (!IsActive())
+			return;
 	}
-		
+
 	Matrix mtx(true);
 	physics->GetModelMatrix(mtx);
 	items->DrawFlares(dltTime, mtx);
@@ -3221,9 +3239,8 @@ void _cdecl Character::DrawHUD(float dltTime, long level)
 
 	if (chrAchievements)
 	{
-		//chrAchievements->DrawReached(&Render(),dltTime);
+		// chrAchievements->DrawReached(&Render(),dltTime);
 	}
-
 }
 
 //Полёт бомбы
@@ -3231,26 +3248,26 @@ void _cdecl Character::BulletFly(float dltTime, long level)
 {
 	BltTrace.fTime += dltTime;
 
-	if (BltTrace.fTime>BltTrace.fMaxTime)
+	if (BltTrace.fTime > BltTrace.fMaxTime)
 	{
-		DelUpdate(&Character::BulletFly);	
+		DelUpdate(&Character::BulletFly);
 
 		logic->ShootHit(BltTrace.damage);
 
-		if (logic->shootTargets.Size()>0)
+		if (logic->shootTargets.Size() > 0)
 		{
 			if (logic->shootTargets[0].target->IsPlayer() &&
 				logic->shootTargets[0].target->logic->GetState() == CharacterLogic::state_block)
 			{
-				if (Rnd()>0.85f)
+				if (Rnd() > 0.85f)
 				{
-					logic->shootTargets[0].target->logic->SetShootTarget(this,"Hit");
+					logic->shootTargets[0].target->logic->SetShootTarget(this, "Hit");
 				}
 				else
 				{
-					logic->shootTargets[0].target->logic->SetShootTarget(NULL,"Hit");
+					logic->shootTargets[0].target->logic->SetShootTarget(NULL, "Hit");
 				}
-				
+
 				logic->shootTargets[0].target->need_cntl_shoot_call = false;
 				logic->shootTargets[0].target->Shoot(10.0f);
 			}
@@ -3259,55 +3276,54 @@ void _cdecl Character::BulletFly(float dltTime, long level)
 		return;
 	}
 
+	Vector pos = Vector(0, 0, 0);
 
-	Vector pos = Vector(0,0,0);	
+	pos.Lerp(BltTrace.BulletStart, BltTrace.BulletEnd, BltTrace.fTime / BltTrace.fMaxTime);
 
-	pos.Lerp(BltTrace.BulletStart,BltTrace.BulletEnd, BltTrace.fTime/BltTrace.fMaxTime);
-
-	arbiter->DrawBulletTrace(Matrix(Vector(BltTrace.fPitchAngle,BltTrace.fAngle,0.0f),pos),1.0f);	
+	arbiter->DrawBulletTrace(Matrix(Vector(BltTrace.fPitchAngle, BltTrace.fAngle, 0.0f), pos), 1.0f);
 }
 
 //Нарисовать сферу в режиме редактирования
 void _cdecl Character::EditMode_Draw(float dltTime, long level)
 {
-	if(!EditMode_IsVisible()) return;	
+	if (!EditMode_IsVisible())
+		return;
 
 	if (shadowModel.scene)
 	{
 		Matrix mtx1(true);
-		physics->GetMatrixWithBoneOffset(mtx1);		
-		
+		physics->GetMatrixWithBoneOffset(mtx1);
+
 		currentModel = model.scene;
 
 		Vector cam_pos = Render().GetView().GetCamPos();
 
 		if (pattern)
 		{
-			if ((Render().GetView().GetCamPos()-mtx1.pos).GetLengthXZ2()>pattern->fLODDist)
+			if ((Render().GetView().GetCamPos() - mtx1.pos).GetLengthXZ2() > pattern->fLODDist)
 			{
 				currentModel = shadowModel.scene;
 			}
 		}
 	}
 
-
 	Matrix mtx(true);
 	physics->GetModelMatrix(mtx);
-	if(currentModel)
+	if (currentModel)
 	{
 		DrawModel(mtx, currentModel);
 	}
 	else
 	{
-		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight()*0.5f, physics->GetRadius());
-		mtx.pos.y += physics->GetHeight()*0.5f;
+		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius());
+		mtx.pos.y += physics->GetHeight() * 0.5f;
 		Render().DrawSphere(mtx, 0x4fff0000);
 	}
-	
-	if( pattern && pattern->cHairParams.NotEmpty() )
+
+	if (pattern && pattern->cHairParams.NotEmpty())
 	{
 		bodyparts.Draw(dltTime);
-	}	
+	}
 
 	/*if(!logic->IsActor())
 	{
@@ -3330,43 +3346,44 @@ void _cdecl Character::EditMode_Draw(float dltTime, long level)
 			}
 		}
 	}else*/
-	if(logic->IsActor())
+	if (logic->IsActor())
 	{
-		if(!actorTimeLine)
+		if (!actorTimeLine)
 		{
 			MOSafePointerTypeEx<ActorTimeLine> mo;
 			static const ConstString strTypeId("ActorTimeLine");
-			mo.FindObject(&Mission(),actorTimeLineName,strTypeId);
-			
-			if(mo.Ptr() != actorTimeLine)
+			mo.FindObject(&Mission(), actorTimeLineName, strTypeId);
+
+			if (mo.Ptr() != actorTimeLine)
 			{
 				actorTimeLine = mo.Ptr();
 				ResetActor();
 			}
 		}
-		if(actorTimeLine)
+		if (actorTimeLine)
 		{
 			actorTimeLine->SetDrawCharacter(this);
-		/*
-			ResetActor();
-			physics->SetPos(actorData.pos);
-			physics->SetAy(actorData.ay);
-		*/
+			/*
+				ResetActor();
+				physics->SetPos(actorData.pos);
+				physics->SetAy(actorData.ay);
+			*/
 		}
-	}	
+	}
 
-	if(showCollider)
+	if (showCollider)
 	{
 		physics->GetColliderMatrix(mtx);
-		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight()*0.5f, physics->GetRadius());
+		mtx.Scale3x3(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius());
 		Render().DrawSphere(mtx, 0x9fc0c0ff);
 		Render().Print(mtx.pos + Vector(0.0f, 1.6f, 0.0f), 10.0f, 1.0f, 0xffffffff, "Id: %s", GetObjectID().c_str());
-	}	
+	}
 
-	if (bShowCoinED) Render().DrawSphere(mtx.pos+Vector(0,fCointAltetude,0), 0.15f, 0x9900ffff);
+	if (bShowCoinED)
+		Render().DrawSphere(mtx.pos + Vector(0, fCointAltetude, 0), 0.15f, 0x9900ffff);
 }
 
-Matrix & Character::FixMtx(Matrix & mtx)
+Matrix &Character::FixMtx(Matrix &mtx)
 {
 	if (mtx.vx.GetLength2() < 0.9f)
 		mtx.SetIdentity3x3();
@@ -3374,50 +3391,48 @@ Matrix & Character::FixMtx(Matrix & mtx)
 	return mtx;
 }
 
-void Character::BornParticle(const char* LocatorName,const char* ParticleName)
+void Character::BornParticle(const char *LocatorName, const char *ParticleName)
 {
 	GMXHANDLE loc = model.scene->FindEntity(GMXET_LOCATOR, LocatorName);
 
 	if (loc.isValid())
-	{					
+	{
 		Matrix mtx = model.scene->GetNodeLocalTransform(loc);
 
 		mtx = FixMtx(mtx);
 
 		Matrix mat(true);
-		physics->GetModelMatrix(mat);		
+		physics->GetModelMatrix(mat);
 
-		IParticleSystem* pParticale = Particles().CreateParticleSystem(ParticleName);
+		IParticleSystem *pParticale = Particles().CreateParticleSystem(ParticleName);
 
 		if (pParticale)
 		{
 			pParticale->Teleport(mtx * mat);
 			pParticale->AutoDelete(true);
 			pParticale->AttachTo(model.scene, loc, true);
-			pParticale->Restart(rand());							
-		}		
+			pParticale->Restart(rand());
+		}
 	}
-
 }
 
-
-bool Character::FindLocator(const char* LocatorName,Vector &pos)
+bool Character::FindLocator(const char *LocatorName, Vector &pos)
 {
 	Matrix mat(true);
 
-	if (FindLocator(LocatorName,mat))
+	if (FindLocator(LocatorName, mat))
 	{
 		pos = mat.pos;
 
 		return true;
-	}	
+	}
 
 	return false;
 }
 
-bool Character::FindLocator(const char* LocatorName,Matrix &loc_mat)
+bool Character::FindLocator(const char *LocatorName, Matrix &loc_mat)
 {
-	if(model.scene)
+	if (model.scene)
 	{
 		GMXHANDLE loc = model.scene->FindEntity(GMXET_LOCATOR, LocatorName);
 
@@ -3433,7 +3448,7 @@ bool Character::FindLocator(const char* LocatorName,Matrix &loc_mat)
 
 			return true;
 		}
-	}	
+	}
 
 	return false;
 }
@@ -3441,19 +3456,20 @@ bool Character::FindLocator(const char* LocatorName,Matrix &loc_mat)
 // получить матрицу кости
 Matrix Character::GetBoneMatrix(long index)
 {
-	if (index<0 || !animation) return Matrix();
+	if (index < 0 || !animation)
+		return Matrix();
 
-	IAnimation* anim = animation->GetCurAnimation();
+	IAnimation *anim = animation->GetCurAnimation();
 
 	if (anim)
 	{
-		return anim->GetBoneMatrix(index);	
+		return anim->GetBoneMatrix(index);
 	}
-	
+
 	return Matrix();
 }
 
-IAnimation* Character::GetAnimation()
+IAnimation *Character::GetAnimation()
 {
 	if (animation)
 	{
@@ -3461,7 +3477,6 @@ IAnimation* Character::GetAnimation()
 	}
 
 	return null;
-
 };
 
 float Character::GetTimeInFatality()
@@ -3480,12 +3495,10 @@ void Character::ShowDebugInfo(int type)
 	}
 
 	if (debugInfoType<0) debugInfoType = 0;*/
-	
-	
 
-	int pow = 1;	
+	int pow = 1;
 
-	for (int i=0;i<type;i++)
+	for (int i = 0; i < type; i++)
 	{
 		pow *= 2;
 	}
@@ -3497,22 +3510,22 @@ void Character::ShowDebugInfo(int type)
 	else
 	{
 		debugInfoType = debugInfoType | pow;
-	}	
-	
-	SetUpdate(&Character::DrawDebugInfo, ML_DEBUG1);	
+	}
+
+	SetUpdate(&Character::DrawDebugInfo, ML_DEBUG1);
 }
 
 void Character::SetDebugInfo(int type)
 {
 	debugInfoType = type;
 
-	if (type<0)
-	{		
+	if (type < 0)
+	{
 		DelUpdate(&Character::DrawDebugInfo);
 	}
 	else
 	{
-		SetUpdate(&Character::DrawDebugInfo, ML_DEBUG1);	
+		SetUpdate(&Character::DrawDebugInfo, ML_DEBUG1);
 	}
 }
 
@@ -3524,13 +3537,13 @@ void _cdecl Character::DrawDebugInfo(float dltTime)
 	}
 
 	Render().Print(10,30,0xffffffff,"%4.3f %4.3f %4.3f",physics->GetPos().x,physics->GetPos().y,physics->GetPos().z);
-	
+
 	/*if (IsPlayer())
 	{
 		Render().DrawBox(currentModel->GetLocalBound().vMin,currentModel->GetLocalBound().vMax);
 
 		Vector vMin, vMax;
-		
+
 		Matrix mObj;
 		GetBox(vMin, vMax);
 		GetMatrix(mObj);
@@ -3543,223 +3556,224 @@ void _cdecl Character::DrawDebugInfo(float dltTime)
 
 		Render().DrawBox(min,max,Matrix(),0xff00ff00);
 	}*/
-	
-	if (!pattern) return;
+
+	if (!pattern)
+		return;
 
 	Matrix mtx(true);
 	physics->GetColliderMatrix(mtx);
-		
+
 	int pow = 1;
-	int index = 1;	
-	
+	int index = 1;
+
 	Vector pos = mtx.pos + Vector(0.0f, physics->GetHeight() * 0.75f, 0.0f);
 
 	arbiter->PrintTextShadowed(pos, 0, 0xffffffff, "Id: %s", GetObjectID().c_str());
-	
-	for (int i=0;i<7;i++)
+
+	for (int i = 0; i < 7; i++)
 	{
 		if (debugInfoType & pow)
 		{
 			switch (pow)
 			{
-				case 1:
-				{	
-					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Active: %s", IsActive() ? "Yes" : "No");
-					arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Visible: %s", IsShow() ? "Yes" : "No"); 
-															
-					if (logic->GetHP()>0)
+			case 1:
+			{
+				arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Active: %s", IsActive() ? "Yes" : "No");
+				arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Visible: %s", IsShow() ? "Yes" : "No");
+
+				if (logic->GetHP() > 0)
+				{
+					arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "State: Alive");
+				}
+				else
+				{
+					if (bDeadConterOn)
 					{
-						arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "State: Alive");
+						if (IsDead())
+							arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "State: Dead");
+						else
+							arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "State: Dying");
 					}
 					else
 					{
-						if (bDeadConterOn)
-						{
-							if (IsDead())
-								arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "State: Dead");
-							else
-								arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "State: Dying");
-						}
-						else
-						{
-							arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "State: Dead");
-						}
+						arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "State: Dead");
 					}
-
-					Vector ps = physics->GetPos();
-
-					arbiter->PrintTextShadowed(pos, index+3, 0xffffffff, "Anim State: %s", logic->GetStateString());
-
-					arbiter->PrintTextShadowed(pos, index+4, 0xffffffff,
-											   "Position: %3.2f %3.2f %3.2f",
-											   ps.x,ps.y,ps.z);
-
-					index+=5;
 				}
-				break;
-				case 2:
+
+				Vector ps = physics->GetPos();
+
+				arbiter->PrintTextShadowed(pos, index + 3, 0xffffffff, "Anim State: %s", logic->GetStateString());
+
+				arbiter->PrintTextShadowed(pos, index + 4, 0xffffffff,
+										   "Position: %3.2f %3.2f %3.2f",
+										   ps.x, ps.y, ps.z);
+
+				index += 5;
+			}
+			break;
+			case 2:
+			{
+				if (animation->GetCurAnimation())
 				{
-					if (animation->GetCurAnimation())
-					{
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Animation: %s", animation->GetCurAnimation()->GetName());
-						arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Node: %s", animation->GetCurAnimation()->CurrentNode()); 
-						index+=2;
-					}
-					else
-					{
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Animation not set");
-						index++;
-					}
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Animation: %s", animation->GetCurAnimation()->GetName());
+					arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Node: %s", animation->GetCurAnimation()->CurrentNode());
+					index += 2;
 				}
-				break;
-				case 4:
+				else
 				{
-					if (animation->GetCurAnimation() && pattern)
-					{
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Dynamic Light: %s", pattern->dynamicLighting ? "yes" : "no");
-						arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Shadow Cast: %s", pattern->shadowCast ? "yes" : "no"); 
-						arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "Shadow Receive: %s", pattern->shadowReceive ? "yes" : "no");
-						arbiter->PrintTextShadowed(pos, index+3, 0xffffffff, "Sea Reflection: %s", pattern->seaReflection ? "yes" : "no"); 
-
-						index+=4;
-					}		
-					break;
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Animation not set");
+					index++;
 				}
-				case 8:
+			}
+			break;
+			case 4:
+			{
+				if (animation->GetCurAnimation() && pattern)
 				{
-					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "HP: %4.1f", logic->GetHP());
-					arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Max HP: %4.1f", logic->GetMaxHP());
-					arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "Armor absorb damage: %3.1f of 100", 100.0f - items->CalcDamage(100.0f));
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Dynamic Light: %s", pattern->dynamicLighting ? "yes" : "no");
+					arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Shadow Cast: %s", pattern->shadowCast ? "yes" : "no");
+					arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "Shadow Receive: %s", pattern->shadowReceive ? "yes" : "no");
+					arbiter->PrintTextShadowed(pos, index + 3, 0xffffffff, "Sea Reflection: %s", pattern->seaReflection ? "yes" : "no");
 
-					index+=3;
-				}
-				break;
-				case 16:
-				{			
-					if (logic->IsActor())
-					{
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Character is Actor");
-
-						if (actorTimeLine)
-						{
-							arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "TimeLine: %s", actorTimeLine->GetObjectID().c_str());
-							arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "Current Node: %4.1f", actorData.currentPosition);
-							if (animation->GetCurAnimation())
-							{
-								arbiter->PrintTextShadowed(pos, index+3, 0xffffffff, "Current Anim Node: %s", animation->GetCurAnimation()->CurrentNode());
-							}
-							else
-							{
-								arbiter->PrintTextShadowed(pos, index+3, 0xffffffff, "Actor Animation not set");
-							}
-
-							index+=4;
-						}
-						else
-						{
-							arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "TimeLine not set");
-							index+=2;
-						}
-					}	
-					else
-					{
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Character under AI control");
-						arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "AI type: %s", controller->Name());
-
-						index+=2;
-
-						if (!IsPlayer())
-						{
-							arbiter->PrintTextShadowed(pos, index, 0xffffffff, "AI thought: %s", controller->GetControllerState().c_str());
-
-							if (controller->GetChrTarget())
-							{
-								arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "AI target: %s", controller->GetChrTarget()->GetObjectID().c_str());
-								arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "Dist to target: %4.1f", (controller->GetChrTarget()->physics->GetPos()-physics->GetPos()).GetLength());
-								index+=3;
-							}
-							else
-							{
-								arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "AI target: absent");
-								index+=2;
-							}							
-
-							arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Way: %s", controller->GetWayPointsName().c_str());
-							arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Zone: %s", controller->GetAIZoneName().c_str()); 
-
-							arbiter->PrintTextShadowed(pos, index+2, 0xffffffff, "Dist to Spawn: %4.1f", (logic->GetSpawnPoint()-physics->GetPos()).GetLength()); 
-
-							index+=3;
-						}
-
-						int num_attackers = 0;
-
-						const array<Character*> &chars = arbiter->GetActiveCharacters();
-
-						for (int i=0; i< chars; i++)
-						{
-							if (chars[i]->controller->GetChrTarget() == this)
-							{
-								num_attackers++;
-							}
-						}
-
-						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Num atackers: %i", num_attackers);
-						arbiter->PrintTextShadowed(pos, index+1, 0xffffffff, "Num active atackers: %i", controller->GetNumAtackers());
-
-						index+=2;
-					}
-				}
-				break;
-				case 32:
-				{						
-					for (int i=0; i<items->items;i++)
-						if (items->items[i].weapon_type != wp_armor && items->items[i].weapon_type != wp_bomb)
-						{
-							if (items->items[i].trail)
-							{
-								arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Item %s, attack - %s, trail - %s", items->items[i].id.c_str(), items->items[i].isActive ? "yes" : "no", items->items[i].trail->IsActive() ? "yes" : "no");
-							}
-							else
-							{
-								arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Item %s, attack - %s, trail absent", items->items[i].id.c_str(), items->items[i].isActive ? "yes" : "no");
-							}
-
-							index++;
-						}			
-				}
-				break;
-				case 64:
-				{	
-					if (logic->IsActor() && IsShow() && IsActive())
-					{
-						arbiter->PrintTextShadowed(0xffffff00, "Actor : %s",GetObjectID().c_str());		
-						if (actorTimeLine)
-						{
-							arbiter->PrintTextShadowed(0xffffffff, "TimeLine: %s", actorTimeLine->GetObjectID().c_str());
-							arbiter->PrintTextShadowed(0xffffffff, "Current Node: %4.1f", actorData.currentPosition);
-
-							if (animation->GetCurAnimation())
-							{
-								arbiter->PrintTextShadowed(0xffffffff, "Current Anim Node: %s", animation->GetCurAnimation()->CurrentNode());
-							}
-							else
-							{
-								arbiter->PrintTextShadowed(0xffffffff, "Actor Animation not set");
-							}							
-						}
-						else
-						{
-							arbiter->PrintTextShadowed(0xffffffff, "TimeLine: not set");
-						}												
-					}							
+					index += 4;
 				}
 				break;
 			}
+			case 8:
+			{
+				arbiter->PrintTextShadowed(pos, index, 0xffffffff, "HP: %4.1f", logic->GetHP());
+				arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Max HP: %4.1f", logic->GetMaxHP());
+				arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "Armor absorb damage: %3.1f of 100", 100.0f - items->CalcDamage(100.0f));
+
+				index += 3;
+			}
+			break;
+			case 16:
+			{
+				if (logic->IsActor())
+				{
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Character is Actor");
+
+					if (actorTimeLine)
+					{
+						arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "TimeLine: %s", actorTimeLine->GetObjectID().c_str());
+						arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "Current Node: %4.1f", actorData.currentPosition);
+						if (animation->GetCurAnimation())
+						{
+							arbiter->PrintTextShadowed(pos, index + 3, 0xffffffff, "Current Anim Node: %s", animation->GetCurAnimation()->CurrentNode());
+						}
+						else
+						{
+							arbiter->PrintTextShadowed(pos, index + 3, 0xffffffff, "Actor Animation not set");
+						}
+
+						index += 4;
+					}
+					else
+					{
+						arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "TimeLine not set");
+						index += 2;
+					}
+				}
+				else
+				{
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Character under AI control");
+					arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "AI type: %s", controller->Name());
+
+					index += 2;
+
+					if (!IsPlayer())
+					{
+						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "AI thought: %s", controller->GetControllerState().c_str());
+
+						if (controller->GetChrTarget())
+						{
+							arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "AI target: %s", controller->GetChrTarget()->GetObjectID().c_str());
+							arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "Dist to target: %4.1f", (controller->GetChrTarget()->physics->GetPos() - physics->GetPos()).GetLength());
+							index += 3;
+						}
+						else
+						{
+							arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "AI target: absent");
+							index += 2;
+						}
+
+						arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Way: %s", controller->GetWayPointsName().c_str());
+						arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Zone: %s", controller->GetAIZoneName().c_str());
+
+						arbiter->PrintTextShadowed(pos, index + 2, 0xffffffff, "Dist to Spawn: %4.1f", (logic->GetSpawnPoint() - physics->GetPos()).GetLength());
+
+						index += 3;
+					}
+
+					int num_attackers = 0;
+
+					const array<Character *> &chars = arbiter->GetActiveCharacters();
+
+					for (int i = 0; i < chars; i++)
+					{
+						if (chars[i]->controller->GetChrTarget() == this)
+						{
+							num_attackers++;
+						}
+					}
+
+					arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Num atackers: %i", num_attackers);
+					arbiter->PrintTextShadowed(pos, index + 1, 0xffffffff, "Num active atackers: %i", controller->GetNumAtackers());
+
+					index += 2;
+				}
+			}
+			break;
+			case 32:
+			{
+				for (int i = 0; i < items->items; i++)
+					if (items->items[i].weapon_type != wp_armor && items->items[i].weapon_type != wp_bomb)
+					{
+						if (items->items[i].trail)
+						{
+							arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Item %s, attack - %s, trail - %s", items->items[i].id.c_str(), items->items[i].isActive ? "yes" : "no", items->items[i].trail->IsActive() ? "yes" : "no");
+						}
+						else
+						{
+							arbiter->PrintTextShadowed(pos, index, 0xffffffff, "Item %s, attack - %s, trail absent", items->items[i].id.c_str(), items->items[i].isActive ? "yes" : "no");
+						}
+
+						index++;
+					}
+			}
+			break;
+			case 64:
+			{
+				if (logic->IsActor() && IsShow() && IsActive())
+				{
+					arbiter->PrintTextShadowed(0xffffff00, "Actor : %s", GetObjectID().c_str());
+					if (actorTimeLine)
+					{
+						arbiter->PrintTextShadowed(0xffffffff, "TimeLine: %s", actorTimeLine->GetObjectID().c_str());
+						arbiter->PrintTextShadowed(0xffffffff, "Current Node: %4.1f", actorData.currentPosition);
+
+						if (animation->GetCurAnimation())
+						{
+							arbiter->PrintTextShadowed(0xffffffff, "Current Anim Node: %s", animation->GetCurAnimation()->CurrentNode());
+						}
+						else
+						{
+							arbiter->PrintTextShadowed(0xffffffff, "Actor Animation not set");
+						}
+					}
+					else
+					{
+						arbiter->PrintTextShadowed(0xffffffff, "TimeLine: not set");
+					}
+				}
+			}
+			break;
+			}
 		}
-		
+
 		pow *= 2;
-	}	
+	}
 }
 
 void Character::ShowControllerDebugInfo(bool show)
@@ -3769,7 +3783,7 @@ void Character::ShowControllerDebugInfo(bool show)
 		SetUpdate(&Character::DrawControllerDebugInfo, ML_ALPHA5);
 	}
 	else
-	{				
+	{
 		DelUpdate(&Character::DrawControllerDebugInfo);
 	}
 }
@@ -3782,20 +3796,21 @@ void _cdecl Character::DrawControllerDebugInfo(float dltTime)
 	}
 }
 
-void Character::BloodStain(float dmg, Character * offender)
+void Character::BloodStain(float dmg, Character *offender)
 {
-	if (!arbiter->stainManager) return;
+	if (!arbiter->stainManager)
+		return;
 
 	Vector dir;
 	dir.Rand();
 	dir.y = -fabs(dir.y);
 
-	int dropCount = 1;		// если dmg < 0.0 дропаем 1 штучку крови(из анимаций и т.п.)
+	int dropCount = 1; // если dmg < 0.0 дропаем 1 штучку крови(из анимаций и т.п.)
 	if (dmg >= 0.0f)
 	{
 		if (offender && offender != arbiter->GetPlayer() && offender->logic)
 			dmg *= 1.0f / Max(1.0f, offender->logic->attack_mult);
-		
+
 		fBloodDamage += powf(dmg, 0.85f);
 		dropCount = int(fBloodDamage / fBloodDropDamage);
 		dropCount = Min(5, dropCount);
@@ -3808,43 +3823,58 @@ void Character::BloodStain(float dmg, Character * offender)
 		pos.y -= physics->GetHeight() * 0.5f;
 
 		float d = 0.5f;
-		for (int i=0; i<dropCount; i++)
+		for (int i = 0; i < dropCount; i++)
 			arbiter->stainManager->AddStain(pos + Vector(RRnd(-d, d), 0.0f, RRnd(-d, d)), dir);
 	}
 }
 
 void _cdecl Character::DrawCoin(float dltTime)
-{	
-	if (logic->IsActor()) return;
-	if (!IsShow()) return;
+{
+	int dol;
 
-	//if (coinModelIndex<0) return;
+	dol=1;
+	if (dol==1){
+      fBloodDropDamage++;
+	}else
+	{
+      fBloodDropDamage--;
+	  while(dol<5)
+	  {
+		seaRefraction=bool;
+	  }
+	}
+	if (logic->IsActor())
+		return;
+	if (!IsShow())
+		return;
+
+	// if (coinModelIndex<0) return;
 
 	// HARD HACK!!!!
 	if (logic->GetSide() != CharacterLogic::s_boss)
-	{			
-		MissionObject* player = Mission().Player();
+	{
+		MissionObject *player = Mission().Player();
 
 		if (player)
-		{		
+		{
 			MO_IS_IF(is_Character, "Character", player)
 			{
-				Character* chr = (Character*)player;
+				Character *chr = (Character *)player;
 
 				Vector pos1 = chr->physics->GetPos();
 				Vector pos2 = physics->GetPos();
-				
-				if(fabsf(pos1.y - pos2.y) > 0.3f) return;
+
+				if (fabsf(pos1.y - pos2.y) > 0.3f)
+					return;
 			}
-		}						
+		}
 	}
-	
 
 	fCoinTime -= dltTime;
 
 	float ang_k = 1.0f;
-	
-	if (FATALITY_TIME - fTimeInFatality<2.0f)
+
+	if (FATALITY_TIME - fTimeInFatality < 2.0f)
 	{
 		ang_k = 2.0f - (FATALITY_TIME - fTimeInFatality) + 1.0f;
 	}
@@ -3853,10 +3883,19 @@ void _cdecl Character::DrawCoin(float dltTime)
 
 	coinModelIndex = -1;
 
-	if (fCoinTime<0.0f)
+	if (fCoinTime < 0.0f)
 	{
 		fCoinTime = 0.0f;
-		//fCoinAngle = 0.0f;
+		// fCoinAngle = 0.0f;
+
+		if (CharCoin != chrcoin_none)
+		{
+			coinModelIndex = CharCoin;
+		}
+	}
+	else if (fCoinTime < CoinChangeTime)
+	{
+		// fCoinAngle = -fCoinTime/CoinChangeTime * PI/2;
 
 		if (CharCoin != chrcoin_none)
 		{
@@ -3864,18 +3903,8 @@ void _cdecl Character::DrawCoin(float dltTime)
 		}
 	}
 	else
-	if (fCoinTime<CoinChangeTime)
 	{
-		//fCoinAngle = -fCoinTime/CoinChangeTime * PI/2;
-
-		if (CharCoin != chrcoin_none)
-		{
-			coinModelIndex = CharCoin;
-		}
-	}
-	else		
-	{
-		//fCoinAngle = (CoinChangeTime * 2.0f - fCoinTime)/CoinChangeTime * PI/2;
+		// fCoinAngle = (CoinChangeTime * 2.0f - fCoinTime)/CoinChangeTime * PI/2;
 
 		if (LastCharCoin != chrcoin_none)
 		{
@@ -3885,70 +3914,68 @@ void _cdecl Character::DrawCoin(float dltTime)
 
 	fCoindDltHgt += dltTime * 2.0f;
 
-	if (fCoindDltHgt > PI * 2) fCoindDltHgt -= PI * 2;
+	if (fCoindDltHgt > PI * 2)
+		fCoindDltHgt -= PI * 2;
 
-
-
-	if (fTimeInFatality > FATALITY_TIME && coinModelIndex == 4) return;
+	if (fTimeInFatality > FATALITY_TIME && coinModelIndex == 4)
+		return;
 
 	// Test Link
 	{
-		const char * charName = "blood";		
+		const char *charName = "blood";
 
-		const char * victimName = logic->GetCharName();
+		const char *victimName = logic->GetCharName();
 
 		if (!victimName || !victimName[0])
 		{
-			SetCharacterCoin(chrcoin_none);			
+			SetCharacterCoin(chrcoin_none);
 
 			return;
 		}
 
 		FatalityParams::TFatalityType type;
-		const char * topairLink = logic->GetToPairLink(type);
+		const char *topairLink = logic->GetToPairLink(type);
 
 		char pairLink[128];
 
 		if (!topairLink || !topairLink[0])
-		{				
-			crt_snprintf(pairLink, 127, "%s %s pair",charName,victimName);
+		{
+			crt_snprintf(pairLink, 127, "%s %s pair", charName, victimName);
 		}
 		else
 		{
 			if (string::IsEmpty(topairLink))
 			{
-				crt_snprintf(pairLink,127, "%s %s pair",charName,victimName);
+				crt_snprintf(pairLink, 127, "%s %s pair", charName, victimName);
 			}
 			else
-			{					
-				crt_snprintf(pairLink,127,"%s %s pair %s",charName,victimName,topairLink);
+			{
+				crt_snprintf(pairLink, 127, "%s %s pair %s", charName, victimName, topairLink);
 			}
-		}			
+		}
 
-		if(!animation->TestActivateLink(pairLink))
+		if (!animation->TestActivateLink(pairLink))
 		{
-			///SetCharacterCoin(chrcoin_none);			
+			/// SetCharacterCoin(chrcoin_none);
 
 			return;
 		}
 	}
 
-
-
 	Matrix mInvView = Render().GetView();
 
 	mInvView.Inverse();
 
-	Vector dir(0.0,0.0,-1.0f);
+	Vector dir(0.0, 0.0, -1.0f);
 
-	mInvView.pos = 0.0f;		
+	mInvView.pos = 0.0f;
 
 	dir = dir * mInvView;
 
-	dir.y=0;
+	dir.y = 0;
 	dir.Normalize();
 
-	Vector up(0.0,0.0,1.0f);
+	Vector up(0.0, 0.0, 1.0f);
 
 	float angle = up.GetAngleXZ(dir) + fCoinAngle;
 
@@ -3959,21 +3986,23 @@ void _cdecl Character::DrawCoin(float dltTime)
 	Matrix mtx1(true);
 	physics->GetMatrixWithBoneOffset(mtx1);
 
-	mtx.pos = mtx1.pos + Vector(0.0f, fCointAltetude - 1.0f + cos (fCoindDltHgt) *0.105f,0.0f);
+	mtx.pos = mtx1.pos + Vector(0.0f, fCointAltetude - 1.0f + cos(fCoindDltHgt) * 0.105f, 0.0f);
 
 	float a = 1.0f;
 
-	if (FATALITY_TIME - fTimeInFatality<2.0f)
+	if (FATALITY_TIME - fTimeInFatality < 2.0f)
 	{
 		a = (FATALITY_TIME - fTimeInFatality) / 2.0f;
 	}
 
-	if (a>0.25f) arbiter->DrawCoin(coinModelIndex,mtx, a);	
+	if (a > 0.25f)
+		arbiter->DrawCoin(coinModelIndex, mtx, a);
 }
 
 void Character::SetCharacterCoin(TCharacterCoin coin)
 {
-	if (isPlayer) return;
+	if (isPlayer)
+		return;
 
 	if (logic->GetSide() == CharacterLogic::s_ally)
 	{
@@ -3984,11 +4013,11 @@ void Character::SetCharacterCoin(TCharacterCoin coin)
 	{
 		coin = chrcoin_none;
 	}
-		
+
 	if (coin == chrcoin_fatality)
 	{
-		if (logic->GetHP()>0)
-		{		
+		if (logic->GetHP() > 0)
+		{
 			fTimeInFatality = 0.0f;
 		}
 		else
@@ -3997,12 +4026,12 @@ void Character::SetCharacterCoin(TCharacterCoin coin)
 		}
 	}
 
-
-	if (coin == CharCoin) return;	
+	if (coin == CharCoin)
+		return;
 
 	if (CharCoin == chrcoin_none)
 	{
-		fCoinTime = CoinChangeTime;		
+		fCoinTime = CoinChangeTime;
 	}
 	else
 	{
@@ -4010,76 +4039,76 @@ void Character::SetCharacterCoin(TCharacterCoin coin)
 	}
 
 	LastCharCoin = CharCoin;
-	CharCoin = coin;	
+	CharCoin = coin;
 
 	if (CharCoin == chrcoin_none)
-	{	
+	{
 		fTimeInFatality = FATALITY_TIME + 0.1f;
-	}	
+	}
 }
 
 //Нарисовать модельку и навеску
-inline void Character::DrawModel(const Matrix & mtx, IGMXScene * mdl, bool drawCoin, const Color * userColor)
+inline void Character::DrawModel(const Matrix &mtx, IGMXScene *mdl, bool drawCoin, const Color *userColor)
 {
-	if(!mdl) return;
-	if(!userColor)
+	if (!mdl)
+		return;
+	if (!userColor)
 	{
 		static Color empty(0.0f, 0.0f, 0.0f, 1.0f);
 		userColor = &empty;
 	}
 
 	Matrix mat = mtx;
-		
-	items->Draw(mat, *userColor);			
+
+	items->Draw(mat, *userColor);
 
 #ifdef CHARACTER_STARFORCE
 	AssertStarForce(fabsf(curScaleSpike - 1.0f) < 1e-5f);
-	mdl->SetTransform(Matrix().BuildScale(curScaleSpike) * mat);	
+	mdl->SetTransform(Matrix().BuildScale(curScaleSpike) * mat);
 #else
-	mdl->SetTransform(mat);	
+	mdl->SetTransform(mat);
 #endif
 
 	mdl->SetUserColor(*userColor);
-	mdl->Draw();	
+	mdl->Draw();
 
 	if (armor)
 	{
 		armor->Draw(mat);
 	}
-	
 
-	//fCoinAngle = 0.0f;
-	//coinModelIndex = 1;
+	// fCoinAngle = 0.0f;
+	// coinModelIndex = 1;
 
 	if (coinModelIndex != -1 && drawCoin)
-	{				
-		if (!logic->PairModeAllowed(true,true))
+	{
+		if (!logic->PairModeAllowed(true, true))
 		{
-			SetCharacterCoin(chrcoin_none);			
+			SetCharacterCoin(chrcoin_none);
 
 			return;
 		}
 
 		// Test Link
 		/*{
-			const char * charName = "blood";		
+			const char * charName = "blood";
 
 			const char * victimName = logic->GetCharName();
 
 			if (!victimName || !victimName[0])
 			{
-				SetCharacterCoin(chrcoin_none);			
+				SetCharacterCoin(chrcoin_none);
 
 				return;
 			}
-	
+
 			FatalityParams::TFatalityType type;
 			const char * topairLink = logic->GetToPairLink(type);
 
 			char pairLink[128];
 
 			if (!topairLink || !topairLink[0])
-			{				
+			{
 				crt_snprintf(pairLink, 127, "%s %s pair",charName,victimName);
 			}
 			else
@@ -4089,20 +4118,20 @@ inline void Character::DrawModel(const Matrix & mtx, IGMXScene * mdl, bool drawC
 					crt_snprintf(pairLink,127, "%s %s pair",charName,victimName);
 				}
 				else
-				{					
+				{
 					crt_snprintf(pairLink,127,"%s %s pair %s",charName,victimName,topairLink);
 				}
-			}			
-		
+			}
+
 			if(!animation->TestActivateLink(pairLink))
 			{
-				///SetCharacterCoin(chrcoin_none);			
+				///SetCharacterCoin(chrcoin_none);
 
 				return;
 			}
 		}
 
-		{			
+		{
 			MissionObject* player = Mission().Player();
 
 			if (player)
@@ -4111,7 +4140,7 @@ inline void Character::DrawModel(const Matrix & mtx, IGMXScene * mdl, bool drawC
 				player->GetMatrix(mat);
 
 				if(fabsf(mat.pos.y - physics->GetPos().y) > 0.3f) return;
-			}						
+			}
 		}*/
 	}
 }
@@ -4121,10 +4150,10 @@ void _cdecl Character::DeadTimer(float dltTime, long level)
 {
 	deadBodyTime += dltTime;
 
-	if (logic->is_attached>0)
-	{		
+	if (logic->is_attached > 0)
+	{
 		return;
-	}	
+	}
 
 	if (logic->slave)
 	{
@@ -4132,7 +4161,6 @@ void _cdecl Character::DeadTimer(float dltTime, long level)
 		logic->slave->physics->SetAy(physics->GetAy());
 		logic->slave->physics->SetAz(physics->GetAz());
 	}
-
 
 	if (physics->IsActive())
 	{
@@ -4145,9 +4173,9 @@ void _cdecl Character::DeadTimer(float dltTime, long level)
 	if (!bVanishBody)
 	{
 		Matrix mtx(true);
-		physics->GetMatrixWithBoneOffset(mtx);		
+		physics->GetMatrixWithBoneOffset(mtx);
 
-		const Plane* frustum = Render().GetFrustum();
+		const Plane *frustum = Render().GetFrustum();
 
 		isDeadBodyInFrustum = arbiter->IsSphereInFrustrum(mtx.pos, 1.1f);
 		/*if (isDeadBodyInFrustum)
@@ -4157,10 +4185,10 @@ void _cdecl Character::DeadTimer(float dltTime, long level)
 		return;
 	}
 
-	deadTime += dltTime;		
-	
+	deadTime += dltTime;
+
 	if (deadTime >= GetDeathTime())
-	{			
+	{
 		VanishBody(dltTime);
 	}
 }
@@ -4179,14 +4207,14 @@ void Character::VanishBody(float dltTime)
 	bDeadConterOn = false;
 	ActivateRagdoll(false, 0.0f);
 
-	DelUpdate(&Character::DeadTimer);			
+	DelUpdate(&Character::DeadTimer);
 
 	ReleaseFlyes();
 
 	static const ConstString chaimanId("Chainman");
-	if (!IsPlayer() && (logic->GetSide()!=CharacterLogic::s_boss || aiType == chaimanId)) 
+	if (!IsPlayer() && (logic->GetSide() != CharacterLogic::s_boss || aiType == chaimanId))
 	{
-		if(animation)
+		if (animation)
 		{
 			animation->Start();
 		}
@@ -4196,7 +4224,7 @@ void Character::VanishBody(float dltTime)
 	}
 	else
 	{
-		//hack!!!!
+		// hack!!!!
 		logic->Update(dltTime);
 
 		DelUpdate(&Character::Work);
@@ -4204,53 +4232,52 @@ void Character::VanishBody(float dltTime)
 	}
 
 	if (ragdoll)
-	{		
+	{
 		Matrix boneMatrix(true);
 		physics->GetModelMatrix(boneMatrix);
 		physics->SetPos(boneMatrix.pos);
-
 
 		ragdoll->Release();
 		ragdoll = NULL;
 
 		bAutoReleaseRagdollOn = false;
 		fTimeToReleaseRagDoll = 0.0f;
-		
+
 		physics->GetModelMatrix(boneMatrix);
 		model.scene->SetTransform(boneMatrix);
 	}
 
-	for (dword i=0;i<BodyParts.Size();i++)
+	for (dword i = 0; i < BodyParts.Size(); i++)
 	{
 		if (BodyParts[i].pPhysBox)
 		{
 			BodyParts[i].pPhysBox->Release();
-			BodyParts[i].pPhysBox=NULL;
+			BodyParts[i].pPhysBox = NULL;
 		}
 
 		if (BodyParts[i].pPhysCapsule)
 		{
 			BodyParts[i].pPhysCapsule->Release();
-			BodyParts[i].pPhysCapsule=NULL;
+			BodyParts[i].pPhysCapsule = NULL;
 		}
 
 		if (BodyParts[i].pParticale)
 		{
 			BodyParts[i].pParticale->Release();
-			BodyParts[i].pParticale=NULL;
+			BodyParts[i].pParticale = NULL;
 		}
-	}		
+	}
 }
 
-void Character::DrawCharacterInPosition(const Matrix & mtx, const Color * userColor)
+void Character::DrawCharacterInPosition(const Matrix &mtx, const Color *userColor)
 {
-	IGMXScene* mdl = model.scene;
-	
+	IGMXScene *mdl = model.scene;
+
 	Vector cam_pos = Render().GetView().GetCamPos();
-	
+
 	if (pattern)
 	{
-		if ((cam_pos-physics->GetPos()).GetLengthXZ2()>pattern->fLODDist)
+		if ((cam_pos - physics->GetPos()).GetLengthXZ2() > pattern->fLODDist)
 		{
 			mdl = shadowModel.scene;
 		}
@@ -4260,9 +4287,9 @@ void Character::DrawCharacterInPosition(const Matrix & mtx, const Color * userCo
 }
 
 //Установить цель для бомбы
-void Character::SetBombTarget(const Vector & boomPosition)
+void Character::SetBombTarget(const Vector &boomPosition)
 {
-	if(bombTime < 0.0f)
+	if (bombTime < 0.0f)
 	{
 		bombEnd = boomPosition;
 		bombTime = -10.0f;
@@ -4277,15 +4304,15 @@ bool Character::IsBombBusy()
 
 //Бросить бомбу
 void Character::DropBomb(float bomblietime)
-{		
-	if(bombTime > -5.0f)
+{
+	if (bombTime > -5.0f)
 	{
 		bombLieTime = 0.0f;
 
 		bombTime = -1.0f;
 		DelUpdate(&Character::FlyBomb);
 
-		if(controller)
+		if (controller)
 		{
 			controller->Boom(Vector(bomb.pos.x, bomb.pos.y - 0.1f, bomb.pos.z));
 		}
@@ -4293,7 +4320,7 @@ void Character::DropBomb(float bomblietime)
 
 	bombLieTime = bomblietime;
 
-	//Vector bombStart;	
+	// Vector bombStart;
 
 	//Ищем локатор для бомбы
 	bool isSet = false;
@@ -4304,20 +4331,22 @@ void Character::DropBomb(float bomblietime)
 		bombStart = bombStart * GetMatrix(Matrix());
 		isSet = true;
 	}
-	if(!isSet)
+	if (!isSet)
 	{
 		bombStart = physics->GetPos() + Vector(0.0f, 1.0f, 0.0f);
-	}	
+	}
 
 	bombTime = 0.0f;
 	angles = 0.0f;
 	anglesRot.Rand(Vector(-1.0f), Vector(1.0f));
 	SetUpdate(&Character::FlyBomb, ML_ALPHA1);
 	flySpeed = (bombEnd - bombStart).GetLength();
-	if(flySpeed > 1e-3f)
+	if (flySpeed > 1e-3f)
 	{
-		flySpeed = GetBombSpeed()/flySpeed;
-	}else{
+		flySpeed = GetBombSpeed() / flySpeed;
+	}
+	else
+	{
 		flySpeed = 1000.0f;
 		bombTime = 1.0f;
 	}
@@ -4329,25 +4358,25 @@ void Character::DropBomb(float bomblietime)
 	Vector dir = (bombEnd - bombStart);
 	float dist = dir.Normalize();
 	dir *= dist * 3.33f;
-	dir.y = dist * 0.45f;	
+	dir.y = dist * 0.45f;
 
 	bomb.velocity = dir;
 }
 
 //Высстрелить
-void Character::ShootTargets(float dmg,const char* hit_react,bool flyAway,float fly_dist,float damage_radius, bool damage_once)
-{		
+void Character::ShootTargets(float dmg, const char *hit_react, bool flyAway, float fly_dist, float damage_radius, bool damage_once)
+{
 	damage_radius *= damage_radius;
 	fly_dist *= fly_dist;
 
-	logic->SetShootTarget(null,hit_react);
+	logic->SetShootTarget(null, hit_react);
 
-	array<CharacterFind> & find = arbiter->find;
+	array<CharacterFind> &find = arbiter->find;
 
 	if (damage_once)
-	{		
+	{
 		CharacterFind fnd;
-		fnd.chr = logic->FindTarget(15.55f, PI*0.3f);
+		fnd.chr = logic->FindTarget(15.55f, PI * 0.3f);
 
 		find.DelAll();
 
@@ -4355,35 +4384,39 @@ void Character::ShootTargets(float dmg,const char* hit_react,bool flyAway,float 
 			find.Add(fnd);
 	}
 	else
-	{	
-		arbiter->Find(*this, 0.05f, 15.55f, true, -PI*0.3f, PI*0.3f, 0.5f, 2.5f);	
+	{
+		arbiter->Find(*this, 0.05f, 15.55f, true, -PI * 0.3f, PI * 0.3f, 0.5f, 2.5f);
 	}
-		
-	Character* trg = null;	
 
-	for(long i = 0; i < find; i++)
-	{		
-		if(!find[i].chr->logic->IsEnemy(this)) continue;
+	Character *trg = null;
 
-		if(find[i].chr->logic->IsPairMode()) continue;
+	for (long i = 0; i < find; i++)
+	{
+		if (!find[i].chr->logic->IsEnemy(this))
+			continue;
 
-		if(find[i].chr->ragdoll) continue;
+		if (find[i].chr->logic->IsPairMode())
+			continue;
 
-		if(find[i].chr->logic->IsDead()) continue;
+		if (find[i].chr->ragdoll)
+			continue;
 
-		{			
+		if (find[i].chr->logic->IsDead())
+			continue;
+
+		{
 			trg = find[i].chr;
 
-			Matrix mat(true);	
-			trg->GetMatrix(mat);			
+			Matrix mat(true);
+			trg->GetMatrix(mat);
 
-			float dist = (mat.pos - physics->GetPos()).GetLengthXZ2();			
+			float dist = (mat.pos - physics->GetPos()).GetLengthXZ2();
 
 			if (trg)
-			{			
+			{
 				trg->logic->SetOffender(this);
 
-				if (dist<damage_radius)
+				if (dist < damage_radius)
 				{
 					float fDamageKoef = 1.0f;
 					bool fly = flyAway;
@@ -4398,14 +4431,14 @@ void Character::ShootTargets(float dmg,const char* hit_react,bool flyAway,float 
 						fDamageKoef = 1.0f;
 						fly = false;
 					}*/
-					
-					logic->SetShootTarget(trg,hit_react,fDamageKoef,fly, true);
+
+					logic->SetShootTarget(trg, hit_react, fDamageKoef, fly, true);
 
 					if (trg)
 					{
 						MO_IS_IF(is_Character, "Character", trg)
 						{
-							Character* chr = (Character*)trg;
+							Character *chr = (Character *)trg;
 
 							chr->SetCharacterCoin(Character::chrcoin_none);
 						}
@@ -4427,10 +4460,10 @@ void Character::Shoot(float dmg)
 	{
 		controller->Shoot(dmg);
 	}
-	
+
 	need_cntl_shoot_call = true;
 
-	if (logic->shootTargets.Size()>1 || (IsPlayer() && logic->GetState() != CharacterLogic::state_block))
+	if (logic->shootTargets.Size() > 1 || (IsPlayer() && logic->GetState() != CharacterLogic::state_block))
 	{
 		logic->ShootHit(dmg);
 		return;
@@ -4440,70 +4473,69 @@ void Character::Shoot(float dmg)
 
 	if (IsPlayer() && logic->GetState() == CharacterLogic::state_block)
 	{
-		if (items->FindLocatorinItems("flare",mtx))
+		if (items->FindLocatorinItems("flare", mtx))
 		{
 			BltTrace.BulletStart = mtx.pos;
 		}
 		else
 		{
-			BltTrace.BulletStart = physics->GetPos()+Vector(0.0f,1.2f,0.0f);
+			BltTrace.BulletStart = physics->GetPos() + Vector(0.0f, 1.2f, 0.0f);
 		}
 	}
-	else
-	if (items->FindLocatorinItems("fire",mtx))
+	else if (items->FindLocatorinItems("fire", mtx))
 	{
 		BltTrace.BulletStart = mtx.pos;
-	}		
+	}
 	else
-	{		
+	{
 		GMXHANDLE loc = model.scene->FindEntity(GMXET_LOCATOR, "gun_fire");
 
 		if (loc.isValid())
-		{				
+		{
 			model.scene->GetNodeWorldTransform(loc, mtx);
 
 			BltTrace.BulletStart = mtx.pos;
 		}
 		else
-		{		
-			BltTrace.BulletStart = physics->GetPos()+Vector(0.0f,1.2f,0.0f);
+		{
+			BltTrace.BulletStart = physics->GetPos() + Vector(0.0f, 1.2f, 0.0f);
 		}
-	}	
+	}
 
-	if (logic->shootTargets.Size()>0)
-	{	
-		BltTrace.BulletEnd = logic->shootTargets[0].target->physics->GetPos()+Vector(0.0f,1.2f,0.0f);		
+	if (logic->shootTargets.Size() > 0)
+	{
+		BltTrace.BulletEnd = logic->shootTargets[0].target->physics->GetPos() + Vector(0.0f, 1.2f, 0.0f);
 	}
 	else
-	{							
+	{
 		Vector dr = 0.0f;
-		
+
 		float angle = physics->GetAy();
 
 		if (IsPlayer() && logic->GetState() == CharacterLogic::state_block)
 		{
 			Vector dir = 0.0f;
-			float v_angle = RRnd(0,PI * 0.75f);
-			
+			float v_angle = RRnd(0, PI * 0.75f);
+
 			dir.z = cos(v_angle);
 			dir.y = sin(v_angle);
 
 			dir.Rotate(angle);
 			dir.Rotate(Rnd() * PI * 0.8f);
 
-			BltTrace.BulletEnd = BltTrace.BulletStart + (Rnd(5.0f)+15.0f)*dir;
+			BltTrace.BulletEnd = BltTrace.BulletStart + (Rnd(5.0f) + 15.0f) * dir;
 		}
-		else		
-		{						
-			BltTrace.BulletEnd = BltTrace.BulletStart + (Rnd(5.0f)+15.0f)*Vector(sin(angle),0,cos(angle)) + dr;
-		}		
-	}		
+		else
+		{
+			BltTrace.BulletEnd = BltTrace.BulletStart + (Rnd(5.0f) + 15.0f) * Vector(sin(angle), 0, cos(angle)) + dr;
+		}
+	}
 
 	Vector delta = (BltTrace.BulletEnd - BltTrace.BulletStart);
 	float dst = delta.Normalize();
 	dst -= BltTrace.scaleH;
 
-	if (dst<0)	
+	if (dst < 0)
 	{
 		logic->ShootHit(dmg);
 		return;
@@ -4512,94 +4544,97 @@ void Character::Shoot(float dmg)
 	BltTrace.BulletEnd = BltTrace.BulletStart + delta * dst;
 
 	BltTrace.fTime = 0.0f;
-	BltTrace.fMaxTime = ((BltTrace.BulletStart - BltTrace.BulletEnd).GetLength())/BltTrace.fSpeed;		
+	BltTrace.fMaxTime = ((BltTrace.BulletStart - BltTrace.BulletEnd).GetLength()) / BltTrace.fSpeed;
 
 	BltTrace.damage = dmg;
 
 	SetUpdate(&Character::BulletFly, ML_DYNAMIC5);
-		
 
-	Vector vZAxis = Vector (0.0f, 0.0f, 1.0f);
+	Vector vZAxis = Vector(0.0f, 0.0f, 1.0f);
 	Vector vLookTo = BltTrace.BulletEnd - BltTrace.BulletStart;
 	BltTrace.fAngle = vZAxis.GetAngleXZ(vLookTo);
 
-	BltTrace.fPitchAngle = -atan(vLookTo.y/(sqrt(vLookTo.z*vLookTo.z+vLookTo.x*vLookTo.x)));	
+	BltTrace.fPitchAngle = -atan(vLookTo.y / (sqrt(vLookTo.z * vLookTo.z + vLookTo.x * vLookTo.x)));
 }
 
 // растолкать соседних чаров
-void Character::PushCharcters(float dltTime,float fRadius, bool isCircleSearch, bool only_ally)
+void Character::PushCharcters(float dltTime, float fRadius, bool isCircleSearch, bool only_ally)
 {
 	if (isCircleSearch)
 	{
 		arbiter->FindCircle(*this, fRadius);
 	}
 	else
-	{	
-		arbiter->Find(*this, 0.2f, fRadius, false, -PI*0.5f, PI*0.5f, 0);
-	}	
+	{
+		arbiter->Find(*this, 0.2f, fRadius, false, -PI * 0.5f, PI * 0.5f, 0);
+	}
 
-	Matrix mtx = physics->GetMatrixWithBoneOffset(mtx);		
+	Matrix mtx = physics->GetMatrixWithBoneOffset(mtx);
 	Vector pos = mtx.pos;
 
-	if(arbiter->find > 0)
-	{			
-		array<CharacterFind> & find = arbiter->find;
+	if (arbiter->find > 0)
+	{
+		array<CharacterFind> &find = arbiter->find;
 
-		for(long i = 0; i < find; i++)
-		{			
-			if (find[i].chr->logic->IsPairMode()) continue;
+		for (long i = 0; i < find; i++)
+		{
+			if (find[i].chr->logic->IsPairMode())
+				continue;
 
-			if (only_ally && find[i].chr->logic->GetSide()!=CharacterLogic::s_npc)
+			if (only_ally && find[i].chr->logic->GetSide() != CharacterLogic::s_npc)
 			{
-				if (find[i].chr->logic->IsEnemy(this)) continue;
+				if (find[i].chr->logic->IsEnemy(this))
+					continue;
 			}
-			
-			Vector vDir = find[i].dv;			
-			float dist = vDir.Normalize();
-							
-			vDir*=dltTime*2.75f*(fRadius-dist);
 
-			find[i].chr->physics->Move(vDir);			
+			Vector vDir = find[i].dv;
+			float dist = vDir.Normalize();
+
+			vDir *= dltTime * 2.75f * (fRadius - dist);
+
+			find[i].chr->physics->Move(vDir);
 		}
 	}
 }
 
-void Character::GetPosFromRootBone(Vector& pos)
+void Character::GetPosFromRootBone(Vector &pos)
 {
 	Matrix mtx(true);
 	physics->GetModelMatrix(mtx);
 	mtx.pos = last_pos;
 
 	//Моделька
-	IGMXScene * mdl = shadowModel.scene;
-	if(!mdl) mdl = model.scene;
-	if(!mdl) return;
+	IGMXScene *mdl = shadowModel.scene;
+	if (!mdl)
+		mdl = model.scene;
+	if (!mdl)
+		return;
 
 	if (bAutoReleaseRagdollOn)
 	{
 		Matrix joint_mat = GetBoneMatrix(hips_boneIdx);
 
 		Matrix mtx2(true);
-		
+
 		mtx2.pos = -joint_mat.pos;
 		mtx2.pos.y = 0;
 
 		Matrix mtx3;
-		mtx3.RotateY(-joint_mat.vy.GetAY()+fRotDlt);
+		mtx3.RotateY(-joint_mat.vy.GetAY() + fRotDlt);
 
 		mtx = mtx2 * mtx3 * mtx;
 	}
-			
-	mdl->SetTransform(mtx);	
+
+	mdl->SetTransform(mtx);
 
 	Matrix mat;
 	physics->GetMatrixWithBoneOffset(mat);
 	mtx.pos = last_bone_pos;
 
-	//pos.x = (mdl->GetBound().vMin.x + mdl->GetBound().vMin.x) * 0.5f;
+	// pos.x = (mdl->GetBound().vMin.x + mdl->GetBound().vMin.x) * 0.5f;
 	pos.x = mtx.pos.x;
-	pos.y = mtx.pos.y-0.8f;//mdl->GetBound().vMin.y;
-	//pos.z = (mdl->GetBound().vMin.z + mdl->GetBound().vMin.z) * 0.5f;
+	pos.y = mtx.pos.y - 0.8f; // mdl->GetBound().vMin.y;
+	// pos.z = (mdl->GetBound().vMin.z + mdl->GetBound().vMin.z) * 0.5f;
 	pos.z = mtx.pos.z;
 
 	physics->SetAy(last_bone_ay);
@@ -4615,11 +4650,11 @@ void Character::DropItems()
 }
 
 //Переинициализировать состояние актёра
-void Character::DropItem(const ConstString & item_id)
+void Character::DropItem(const ConstString &item_id)
 {
 	if (items)
 	{
-		items->DropItem(item_id,false);
+		items->DropItem(item_id, false);
 	}
 }
 
@@ -4628,11 +4663,11 @@ void Character::ResetActor()
 {
 	actorData.playerPosition = physics->GetPos();
 	actorData.playerAngle = physics->GetAy();
-	if(actorTimeLine)
+	if (actorTimeLine)
 	{
 		Matrix mt;
 		physics->GetModelMatrix(mt);
-		actorTimeLine->Reset(actorData,mt);
+		actorTimeLine->Reset(actorData, mt);
 	}
 }
 
@@ -4650,26 +4685,27 @@ void Character::UpdateActor(float dltTime)
 
 		last_bone_ay = mt.vz.GetAY();
 
-		//Render().Print(10,10,0xff00ff00,"%f %f %f",mt.pos.x,mt.pos.y,mt.pos.z);
+		// Render().Print(10,10,0xff00ff00,"%f %f %f",mt.pos.x,mt.pos.y,mt.pos.z);
 	}
 
-	if(!actorTimeLine) return;	
+	if (!actorTimeLine)
+		return;
 
-	if(!IsActive())// || EditMode_IsOn())
+	if (!IsActive()) // || EditMode_IsOn())
 	{
 		return;
 	}
 
 	actorTimeLine->Move(actorData, dltTime);
-	
-	if (!logic->IsActor() && bActorMoveColider) return;
-	
+
+	if (!logic->IsActor() && bActorMoveColider)
+		return;
 
 	physics->SetPos(actorData.pos);
 	physics->SetAy(actorData.ay);
 
 	if (actor_attach)
-	{		
+	{
 		Matrix mat;
 		actor_attach->GetMatrix(mat);
 
@@ -4679,14 +4715,14 @@ void Character::UpdateActor(float dltTime)
 		mat = mat2 * mat;
 
 		physics->SetPos(mat.pos);
-		physics->SetAy(mat.vz.GetAY());		
-	}	
+		physics->SetAy(mat.vz.GetAY());
+	}
 }
 
 //Отложеная установка актёра после инициализации
 void _cdecl Character::PostInitSetActor(float dltTime, long level)
 {
-	const char * tmp[1];
+	const char *tmp[1];
 	tmp[0] = "";
 	Command("enableactor", 0, tmp);
 	DelUpdate(&Character::PostInitSetActor);
@@ -4695,34 +4731,35 @@ void _cdecl Character::PostInitSetActor(float dltTime, long level)
 //Активировать/деактивировать рэгдол
 void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, bool autorelease_ragdoll)
 {
-	if (logic->is_attached>0 && isAct)
-	{		
+	if (logic->is_attached > 0 && isAct)
+	{
 		return;
 	}
 
-	if (isAct && IsDead()) return;	
+	if (isAct && IsDead())
+		return;
 
-	if(ragdoll == NULL && isAct == true)
+	if (ragdoll == NULL && isAct == true)
 	{
 		if (!EditMode_IsOn())
-		{			
+		{
 			blendTime = 0.01f;
 
 			fTimeToStandUp = RRnd(3.0f, 10.0f);
 			fTotalTimeToStandUp = 5.0f;
-			
+
 			physics->Activate(false, null, true);
 
-			if (logic->GetHP()>0.0f &&				
+			if (logic->GetHP() > 0.0f &&
 				logic->GetState() != CharacterLogic::state_die &&
 				logic->GetState() != CharacterLogic::state_dead &&
 				!logic->IsPairMode())
 			{
-				animation->Goto("Lie",0.2f);
+				animation->Goto("Lie", 0.2f);
 			}
 			else
 			{
-				animation->ActivateLink("Lie",true);
+				animation->ActivateLink("Lie", true);
 			}
 
 			if (pattern->rdData)
@@ -4742,7 +4779,7 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 
 			if (logic->IsActor())
 			{
-				if(ragdoll && actorData.ani)
+				if (ragdoll && actorData.ani)
 				{
 					Vector dltPos(0.0f);
 					float dltAng = 0.0f;
@@ -4751,18 +4788,18 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 
 					float speed = dltPos.Normalize();
 					speed *= ImpulsePow;
-					speed = Clampf(speed,0.0f,10.0f);
+					speed = Clampf(speed, 0.0f, 10.0f);
 					dltPos *= speed;
 
-					dltPos = Vector(0,2.0f,4.0f);					
+					dltPos = Vector(0, 2.0f, 4.0f);
 
-					ragdoll->SetBlendStage(actorData.ani, aminationBlendLevel_ragdoll);					
+					ragdoll->SetBlendStage(actorData.ani, aminationBlendLevel_ragdoll);
 					ragdoll->Activate(blendTime, physics->GetModelMatrix(Matrix()));
-					
+
 					Matrix mat(true);
 					physics->GetModelMatrix(mat);
 
-					mat.pos = Vector(0,0,0);
+					mat.pos = Vector(0, 0, 0);
 
 					dltPos.y += Rnd(0.2f);
 
@@ -4770,34 +4807,34 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 
 					float fPow = Rnd(0.6f) + 0.4f;
 
-					ragdoll->ApplyImpulse( dltPos * fPow);
+					ragdoll->ApplyImpulse(dltPos * fPow);
 				}
 			}
 			else
 			{
-				if(ragdoll && animation->GetCurAnimation())
+				if (ragdoll && animation->GetCurAnimation())
 				{
-					ragdoll->SetBlendStage(animation->GetCurAnimation(), aminationBlendLevel_ragdoll);					
-					ragdoll->Activate(blendTime, physics->GetModelMatrix(Matrix()));					
+					ragdoll->SetBlendStage(animation->GetCurAnimation(), aminationBlendLevel_ragdoll);
+					ragdoll->Activate(blendTime, physics->GetModelMatrix(Matrix()));
 
-					if (physics->vFlyDir.x==0&&
-						physics->vFlyDir.y==0&&
-						physics->vFlyDir.z==0)
+					if (physics->vFlyDir.x == 0 &&
+						physics->vFlyDir.y == 0 &&
+						physics->vFlyDir.z == 0)
 					{
 						Vector dltPos(0.0f);
 						float dltAng = 0.0f;
-					
+
 						dltPos = physics->dltPosSpeed * 5.0f;
-						
+
 						float speed = dltPos.Normalize();
 						speed *= ImpulsePow;
-						speed = Clampf(speed,0.0f,10.0f);
+						speed = Clampf(speed, 0.0f, 10.0f);
 						dltPos *= speed;
 
 						Matrix mat(true);
 						physics->GetModelMatrix(mat);
 
-						mat.pos = Vector(0,0,0);
+						mat.pos = Vector(0, 0, 0);
 
 						dltPos.y += Rnd(0.2f);
 
@@ -4805,16 +4842,16 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 
 						float fPow = Rnd(0.6f) + 0.4f;
 
-						ragdoll->ApplyImpulse( dltPos * fPow );
+						ragdoll->ApplyImpulse(dltPos * fPow);
 					}
 					else
 					{
-						Vector dltPos(0.0f);						
+						Vector dltPos(0.0f);
 						dltPos = physics->vFlyDir * 5.0f;
 
 						float speed = dltPos.Normalize();
 						speed *= ImpulsePow;
-						//speed = Clampf(speed,0.0f,10.0f);
+						// speed = Clampf(speed,0.0f,10.0f);
 						dltPos *= speed;
 
 						float fPow = Rnd(0.8f) + 0.5f;
@@ -4822,9 +4859,9 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 						dltPos *= fPow;
 
 						float pw = dltPos.Normalize();
-						pw = Clampf(pw,0.0f,15.0f);
+						pw = Clampf(pw, 0.0f, 15.0f);
 
-						ragdoll->ApplyImpulse( dltPos * pw);
+						ragdoll->ApplyImpulse(dltPos * pw);
 
 						physics->vFlyDir = 0.0f;
 					}
@@ -4836,10 +4873,10 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 			if (!logic->IsActor())
 			{
 				Matrix mtx1(true);
-				physics->GetMatrixWithBoneOffset(mtx1);				
+				physics->GetMatrixWithBoneOffset(mtx1);
 
 				vLastRagdollPos = mtx1.pos;
-			}			
+			}
 		}
 		else
 		{
@@ -4850,51 +4887,49 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 	if (ragdoll && isAct == false)
 	{
 		Matrix mtx1(true);
-		physics->GetMatrixWithBoneOffset(mtx1);		
-
+		physics->GetMatrixWithBoneOffset(mtx1);
 
 		IPhysicsScene::RaycastResult pRayCastRes;
 
-		IPhysBase* pRayCastedBody=NULL;
+		IPhysBase *pRayCastedBody = NULL;
 
 		pRayCastedBody = Physics().Raycast(mtx1.pos,
-										   mtx1.pos+Vector(0,-5.0f,0),
+										   mtx1.pos + Vector(0, -5.0f, 0),
 										   phys_mask(phys_world),
 										   &pRayCastRes);
 
 		if (pRayCastedBody)
 		{
-			mtx1.pos+=Vector(0,-pRayCastRes.distance+0.01f,0);
+			mtx1.pos += Vector(0, -pRayCastRes.distance + 0.01f, 0);
 		}
 
 		Matrix moveTo(true);
-		
-		blendTime = 0.15f;		
+
+		blendTime = 0.15f;
 
 		physics->GetModelMatrix(moveTo);
 
 		SetCharacterCoin(Character::chrcoin_none);
 
-		ragdoll->Deactivate(blendTime, mtx1 );
+		ragdoll->Deactivate(blendTime, mtx1);
 
 		new_pos = mtx1.pos;
 
-		//physics->SetPos(new_pos);
+		// physics->SetPos(new_pos);
 		physics->Activate(true, &new_pos, true);
 
-		Matrix joint_mat = GetBoneMatrix(hips_boneIdx);		
+		Matrix joint_mat = GetBoneMatrix(hips_boneIdx);
 
 		mtx1 = joint_mat * moveTo;
-		//physics->SetAy(mtx1.vy.GetAY());		
+		// physics->SetAy(mtx1.vy.GetAY());
 
 		set_new_ay = true;
 		new_ay = mtx1.vy.GetAY();
 
 		bAutoReleaseRagdollOn = true;
 		fTimeToReleaseRagDoll = blendTime;
-		//fTimeToReleaseRagDoll = 0.75f;
+		// fTimeToReleaseRagDoll = 0.75f;
 
-		
 		if (!autorelease_ragdoll)
 		{
 			bAutoReleaseRagdollOn = false;
@@ -4909,18 +4944,19 @@ void Character::ActivateRagdoll(bool isAct, float blendTime, float ImpulsePow, b
 
 void Character::ArmRagdoll()
 {
-	if (!ragdoll) return;
+	if (!ragdoll)
+		return;
 
 	bSelfDestructRagdoll = true;
 
 	Matrix mtx1(true);
 	physics->GetModelMatrix(mtx1);
 
-	Matrix joint_mat = GetBoneMatrix(spine_boneIdx);		
+	Matrix joint_mat = GetBoneMatrix(spine_boneIdx);
 
 	mtx1 = joint_mat * mtx1;
 
-	rd_last_pos = mtx1.pos;		
+	rd_last_pos = mtx1.pos;
 	rd_last_pos2 = rd_last_pos;
 	rd_last_speed = 0.0f;
 
@@ -4932,10 +4968,12 @@ void Character::ArmRagdoll()
 	rd_inited = false;
 }
 
-void Character::FlyBodyPart(const ConstString & ID ,const ConstString & ParticalName, float fImpulseVertPow, float fImpulseHorzPow, float torque,const char * bone)
+void Character::FlyBodyPart(const ConstString &ID, const ConstString &ParticalName, float fImpulseVertPow, float fImpulseHorzPow, float torque, const char *bone)
 {
-	if (fImpulseVertPow==0) fImpulseVertPow = 1.0f;
-	if (fImpulseHorzPow==0) fImpulseHorzPow = 1.0f;
+	if (fImpulseVertPow == 0)
+		fImpulseVertPow = 1.0f;
+	if (fImpulseHorzPow == 0)
+		fImpulseHorzPow = 1.0f;
 
 	static const ConstString headId("Head");
 	static const ConstString helemId("helmet");
@@ -4943,7 +4981,7 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 
 	bool isHead = (ID == headId);
 
-	//Vano: добавил выброс шляпы, а то она часто оставалась прибитой
+	// Vano: добавил выброс шляпы, а то она часто оставалась прибитой
 	if (isHead && (!logic || !logic->IsActor()))
 	{
 		if (!items->DropItem(helemId, false))
@@ -4951,32 +4989,34 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 			{
 				api->Trace("ERROR: Can't drop or hide HELMET item on character \"%s\"", GetObjectID().c_str());
 
-				// скрываем все пустые 
+				// скрываем все пустые
 				items->HideItem(emptyId);
 			}
 	}
 
-	for (int i=0;i<(int)BodyParts.Size();i++)
+	for (int i = 0; i < (int)BodyParts.Size(); i++)
 	{
-		if (BodyParts[i].ID != ID) continue;
-	
-		if (BodyParts[i].pPhysBox || BodyParts[i].pPhysCapsule) break;	
-		
+		if (BodyParts[i].ID != ID)
+			continue;
+
+		if (BodyParts[i].pPhysBox || BodyParts[i].pPhysCapsule)
+			break;
+
 		Matrix mtx;
 
 		if (BodyParts[i].PartModel.scene)
 		{
-			//AABB
-			const GMXBoundBox & volume = BodyParts[i].PartModel.scene->GetLocalBound();
+			// AABB
+			const GMXBoundBox &volume = BodyParts[i].PartModel.scene->GetLocalBound();
 			Vector size = volume.vMax - volume.vMin;
 
-			if(size.x >= 0.0001f && size.y >= 0.0001f && size.z >= 0.0001f)
+			if (size.x >= 0.0001f && size.y >= 0.0001f && size.z >= 0.0001f)
 			{
 				GMXHANDLE loc = model.scene->FindEntity(GMXET_LOCATOR, BodyParts[i].LocatorName.c_str());
 
 				if (!loc.isValid())
 				{
-					LogicDebugError("BodyPart: Cant find locator - %s in %s",BodyParts[i].LocatorName.c_str(),GetObjectID().c_str());
+					LogicDebugError("BodyPart: Cant find locator - %s in %s", BodyParts[i].LocatorName.c_str(), GetObjectID().c_str());
 					return;
 				}
 
@@ -4987,35 +5027,36 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 
 					Vector center = volume.vMin + (size * 0.51f);
 
-					Matrix mt;					
-					mt.pos=center;
+					Matrix mt;
+					mt.pos = center;
 
 					Matrix mat(true);
 					physics->GetModelMatrix(mat);
 
 					Matrix world(mtx, mat);
 
-					world = world * mt;					
+					world = world * mt;
 
-					float radius = (size.x+size.z) * 0.25f;
-					float height = size.y-radius*2;
+					float radius = (size.x + size.z) * 0.25f;
+					float height = size.y - radius * 2;
 
-					if (height<0) height = 0.01f;
+					if (height < 0)
+						height = 0.01f;
 
 					Matrix rot(true);
-					rot.BuildRotateX(PI/2);
-					
+					rot.BuildRotateX(PI / 2);
+
 					if (BodyParts[i].isBox)
 					{
-						BodyParts[i].pPhysBox = Physics().CreateBox(_FL_, volume.vMax-volume.vMin, world, true);
+						BodyParts[i].pPhysBox = Physics().CreateBox(_FL_, volume.vMax - volume.vMin, world, true);
 					}
 					else
 					{
 						BodyParts[i].pPhysCapsule = Physics().CreateCapsule(_FL_, radius, height, rot * world, true);
-					}					
+					}
 
 					float mass = 0.25f;
-					
+
 					if (BodyParts[i].pPhysBox || BodyParts[i].pPhysCapsule)
 					{
 						if (BodyParts[i].pPhysBox)
@@ -5023,66 +5064,65 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 							BodyParts[i].pPhysBox->SetMass(mass);
 							BodyParts[i].pPhysBox->SetGroup(phys_charitems);
 						}
-						
+
 						if (BodyParts[i].pPhysCapsule)
 						{
 							BodyParts[i].pPhysCapsule->SetMass(mass);
 							BodyParts[i].pPhysCapsule->SetGroup(phys_charitems);
 						}
-						
-						//float impulsePower = RRnd(-1.0f, 1.0f);
+
+						// float impulsePower = RRnd(-1.0f, 1.0f);
 
 						Vector impulse;
 
 						impulse.Rand();
-						impulse.y =0.0f;
+						impulse.y = 0.0f;
 						impulse.Normalize();
 
-
 						impulse.x *= fImpulseHorzPow;
-						impulse.y = 0.5f+fImpulseVertPow;
+						impulse.y = 0.5f + fImpulseVertPow;
 						impulse.z *= fImpulseHorzPow;
-												
-						Vector Offset = 0.0f;//-size * 0.5f;// + size * Rnd();						
-						//Vector torque = 150.0f;
+
+						Vector Offset = 0.0f; //-size * 0.5f;// + size * Rnd();
+						// Vector torque = 150.0f;
 
 						if (BodyParts[i].pPhysBox)
 						{
-							BodyParts[i].pPhysBox->ApplyImpulse( impulse, Offset);
+							BodyParts[i].pPhysBox->ApplyImpulse(impulse, Offset);
 							BodyParts[i].pPhysBox->ApplyLocalTorque(torque);
 							BodyParts[i].pPhysBox->SetCenterMass(Offset * 0.25f);
 						}
-							
+
 						if (BodyParts[i].pPhysCapsule)
 						{
-							BodyParts[i].pPhysCapsule->ApplyImpulse( impulse, Offset);
+							BodyParts[i].pPhysCapsule->ApplyImpulse(impulse, Offset);
 							BodyParts[i].pPhysCapsule->ApplyLocalTorque(torque);
 							BodyParts[i].pPhysCapsule->SetCenterMass(Offset * 0.25f);
 						}
 
-						IGMXScene * partScene = BodyParts[i].PartModel.scene;
+						IGMXScene *partScene = BodyParts[i].PartModel.scene;
 						GMXHANDLE loc = partScene->FindEntity(GMXET_LOCATOR, "blood");
-					
+
 						if (loc.isValid())
 						{
 							BodyParts[i].pParticale = Particles().CreateParticleSystem(ParticalName.c_str());
-							
+
 							if (BodyParts[i].pParticale)
 							{
 								BodyParts[i].pParticale->Teleport(partScene->GetNodeLocalTransform(loc) * world);
 								BodyParts[i].pParticale->AutoDelete(false);
 								BodyParts[i].pParticale->AttachTo(partScene, loc, true);
-								BodyParts[i].pParticale->Restart(rand());							
+								BodyParts[i].pParticale->Restart(rand());
 							}
 						}
 
 						if (bone)
 						{
-							const char* params[2];
+							const char *params[2];
 							params[0] = "c";
 							params[1] = bone;
 
-							events->BoneCollapse(animation->GetCurAnimation(),"colapse",params,2);								
+							events->BoneCollapse(animation->GetCurAnimation(), "colapse", params, 2);
 						}
 
 						/*//Vano: добавил выброс шляпы, а то она часто оставалась прибитой
@@ -5093,7 +5133,7 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 						}*/
 					}
 
-					Character* offender = logic->GetOffender();
+					Character *offender = logic->GetOffender();
 
 					if (offender && offender->IsPlayer() && logic->IsRealEnemy(offender, false))
 					{
@@ -5108,14 +5148,14 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 								offender->chrAchievements->CountHead();
 						}
 					}
-					
+
 					return;
 				}
 			}
 		}
 	}
 
-	LogicDebugError("BodyPart: Cant find part - %s in %s",ID.c_str(),GetObjectID().c_str());	
+	LogicDebugError("BodyPart: Cant find part - %s in %s", ID.c_str(), GetObjectID().c_str());
 }
 
 //============================================================================================
@@ -5123,26 +5163,26 @@ void Character::FlyBodyPart(const ConstString & ID ,const ConstString & Partical
 //============================================================================================
 
 void _cdecl Character::EditMode_Work(float dltTime, long level)
-{		
+{
 	bool need_update = false;
-	
-	if (!pattern_ptr.Validate())				
+
+	if (!pattern_ptr.Validate())
 	{
 		static const ConstString strTypeId("CharacterPattern");
-		if (!pattern_ptr.FindObject(&Mission(),pattern_name,strTypeId))
+		if (!pattern_ptr.FindObject(&Mission(), pattern_name, strTypeId))
 		{
 			if (pattern)
 			{
 				pattern = null;
 				pattern_ptr.Reset();
 				need_update = true;
-			}			
+			}
 		}
 		else
 		{
 			need_update = true;
-			pattern = pattern_ptr.Ptr();			
-		}		
+			pattern = pattern_ptr.Ptr();
+		}
 	}
 	else
 	{
@@ -5152,48 +5192,46 @@ void _cdecl Character::EditMode_Work(float dltTime, long level)
 	if (need_update)
 	{
 		Release();
-		
+
 		if (!InitFromPattern())
 		{
 			InitDefault();
 		}
-		
+
 		physics->SetPos(init_pos);
 		physics->SetAy(init_ay);
 
-		InitCharData();		
+		InitCharData();
 
 		if (!shadowModel.scene && pattern)
-		{		
-			api->Trace ("Shadow Model for %s not set ",GetObjectID().c_str());
+		{
+			api->Trace("Shadow Model for %s not set ", GetObjectID().c_str());
 		}
 	}
 
 	CheckRenderState();
 
-	
 	if (EditMode_IsOn() && init_actrorPreview && actorTimeLine)
-	{	
+	{
 		UpdateActor(dltTime);
 
 		if (actorTimeLine->IsTimeLineFinished(actorData))
 		{
-			animation->SetAnimation("actor",0.0f);
+			animation->SetAnimation("actor", 0.0f);
 
 			ResetActor();
 			UpdateActor(0);
-		}		
-	}	
+		}
+	}
 }
 
-
 //Базовая инициализация
-bool Character::Init(MOPReader & reader)
+bool Character::Init(MOPReader &reader)
 {
 	Registry(MG_CHARACTER);
 
 	// Создаем арбитер
-	if(!SetArbiter())
+	if (!SetArbiter())
 	{
 		LogicDebugError("Character not created, CharacterArbiter not found");
 		return false;
@@ -5201,9 +5239,9 @@ bool Character::Init(MOPReader & reader)
 
 	pattern = null;
 	pattern_name = reader.String();
-	
+
 	init_pos = reader.Position();
-	init_ay = reader.Angles().y;	
+	init_ay = reader.Angles().y;
 
 	last_frame_pos = init_pos;
 
@@ -5215,8 +5253,8 @@ bool Character::Init(MOPReader & reader)
 	init_actorTimeLineName = reader.String();
 	init_actrorPreview = reader.Bool();
 	init_EnableAniBlend = reader.Bool();
-	init_ColideWhenActor = reader.Bool();	
-	init_bActorMoveColider = reader.Bool();	
+	init_ColideWhenActor = reader.Bool();
+	init_bActorMoveColider = reader.Bool();
 	useRootBone = reader.Bool();
 
 	fDistShadow = reader.Float();
@@ -5231,7 +5269,7 @@ bool Character::Init(MOPReader & reader)
 	chrInitAI = NEW CharacterInitAI(this);
 	chrInitAI->Init(reader);
 
-	{		
+	{
 		static const ConstString strTypeId("ButtonMiniGameParams");
 		MOSafePointerTypeEx<ButtonMiniGameParams> mo;
 
@@ -5242,13 +5280,13 @@ bool Character::Init(MOPReader & reader)
 			mo.FindObject(&Mission(), mg_params_name, strTypeId);
 			mg_params = mo.Ptr();
 		}
-			
+
 		common_mg_params = null;
 		ConstString common_mg_params_name = reader.String();
 		if (common_mg_params_name.NotEmpty())
 		{
 			mo.FindObject(&Mission(), common_mg_params_name, strTypeId);
-			common_mg_params = mo.Ptr();		
+			common_mg_params = mo.Ptr();
 		}
 	}
 
@@ -5260,16 +5298,16 @@ bool Character::Init(MOPReader & reader)
 	seaRefraction = reader.Bool();
 
 	init_Show = reader.Bool();
-	init_Active = reader.Bool();	
+	init_Active = reader.Bool();
 
 	if (InitFromPattern())
 	{
-		InitCharData();		
+		InitCharData();
 
 		if (isPlayer && !EditMode_IsOn())
 		{
 			bool isMultiplayer = string::IsEqual("survival", api->Storage().GetString("Profile.Global.Difficulty", ""));
-			dword playerNum = ((PlayerController*)controller)->GetPlayerNum();
+			dword playerNum = ((PlayerController *)controller)->GetPlayerNum();
 			chrAchievements = NEW CharacterAchievements(this, playerNum, isMultiplayer);
 		}
 
@@ -5280,18 +5318,18 @@ bool Character::Init(MOPReader & reader)
 }
 
 bool Character::InitFromPattern()
-{		
-	pattern = null;	
+{
+	pattern = null;
 	static const ConstString strTypeId("CharacterPattern");
-	if (!pattern_ptr.FindObject(&Mission(),pattern_name,strTypeId))
-	{		
+	if (!pattern_ptr.FindObject(&Mission(), pattern_name, strTypeId))
+	{
 		if (!EditMode_IsOn())
 		{
-			LogicDebugError("Pattern for %s not set or invalid",GetObjectID().c_str());
+			LogicDebugError("Pattern for %s not set or invalid", GetObjectID().c_str());
 		}
 
 		return false;
-	}	
+	}
 	pattern = pattern_ptr.Ptr();
 
 	static const ConstString playerId("Player");
@@ -5312,57 +5350,56 @@ bool Character::InitFromPattern()
 		return false;
 	}
 
-	//Модельки		
-	if(!SetModel(model, pattern->modelName))
-	{		
-		if(!EditMode_IsOn())
+	//Модельки
+	if (!SetModel(model, pattern->modelName))
+	{
+		if (!EditMode_IsOn())
 		{
 			LogicDebugError("Character not created, model \"%s\" not loaded...", pattern->modelName);
 			return false;
 		}
 	}
-		
+
 	currentModel = model.scene;
 
-	//Рэгдол	
+	//Рэгдол
 	LoadRagdoll();
 
-	//Теневая моделька	
-	SetModel(shadowModel, pattern->shadowName);	
+	//Теневая моделька
+	SetModel(shadowModel, pattern->shadowName);
 
 	Assert(!events);
-	events = NEW CharacterAnimationEvents(this);	
+	events = NEW CharacterAnimationEvents(this);
 
 	Assert(!animation);
 	animation = NEW CharacterAnimation(this);
 
-	//Анимация	
-	animation->AddAnimation("base",pattern->animationName);
-	animation->SetAnimation("base");	
+	//Анимация
+	animation->AddAnimation("base", pattern->animationName);
+	animation->SetAnimation("base");
 	ApplyAnimationQuery(-1.0f);
 
-	//Assert(!physics);	
-	//physics = NEW CharacterPhysics(this);
+	// Assert(!physics);
+	// physics = NEW CharacterPhysics(this);
 	chr_physics.SetOwner(this);
 	physics = &chr_physics;
 
 	Assert(!logic);
 	logic = NEW CharacterLogic(this);
-	
+
 	Assert(!items);
 	items = NEW CharacterItems(this);
-	
-		
-	//Физические парметры	
-	physics->Reset();		
+
+	//Физические парметры
+	physics->Reset();
 	physics->SetRadius(pattern->fRad);
-	physics->SetHeight(pattern->fHeight);	
-	physics->SetPos(Vector(0.0f));	
+	physics->SetHeight(pattern->fHeight);
+	physics->SetPos(Vector(0.0f));
 
 	finder->SetBoxSize(Vector(physics->GetRadius() * 2, physics->GetHeight(), physics->GetRadius() * 2));
 
 	//Логический
-	//logic->Init();
+	// logic->Init();
 	if (IsPlayer())
 	{
 		logic->Init();
@@ -5377,7 +5414,7 @@ bool Character::InitFromPattern()
 	logic->InitHP(logic->GetMaxHP());
 
 	MOSafePointer obj;
-	FindObject(pattern->hpBar,obj);
+	FindObject(pattern->hpBar, obj);
 
 	hpBar = obj.Ptr();
 
@@ -5397,18 +5434,18 @@ bool Character::InitFromPattern()
 
 	fTotalDmgMultiplier = pattern->fTotalDmgMultiplier;
 
-	fCointAltetude = pattern->fCointAltetude;	
+	fCointAltetude = pattern->fCointAltetude;
 
-	bShowCoinED = pattern->bShowCoinED;	
+	bShowCoinED = pattern->bShowCoinED;
 
 	bonusTable = pattern->bonusTable;
 
-	if(!EditMode_IsOn())
-	{		
+	if (!EditMode_IsOn())
+	{
 		events->Init(&Sound(), &Particles(), &Mission());
-		//if(animation) events->SetAnimation(animation->GetCurAnimation());
-		//if(actorData.ani) events->SetAnimation(actorData.ani);
-		if(model.scene)
+		// if(animation) events->SetAnimation(animation->GetCurAnimation());
+		// if(actorData.ani) events->SetAnimation(actorData.ani);
+		if (model.scene)
 		{
 			Matrix mtx;
 			events->SetScene(model.scene, GetMatrix(mtx));
@@ -5418,49 +5455,46 @@ bool Character::InitFromPattern()
 	if (!SetController(aiType))
 		return false;
 
-	for(long i = 0; i < pattern->logic_loactors; i++)
-	{		
+	for (long i = 0; i < pattern->logic_loactors; i++)
+	{
 		items->SetLogicLocator(pattern->logic_loactors[i].id, pattern->logic_loactors[i].locator);
 	}
 
 	items->max_armor_damage_absorb = pattern->max_armor_damage_absorb;
 
-
-
-	{		
-		IGMXScene* armor_model = Geometry().CreateGMX(pattern->armorName, &Animation(), &Particles(), &Sound());
+	{
+		IGMXScene *armor_model = Geometry().CreateGMX(pattern->armorName, &Animation(), &Particles(), &Sound());
 
 		if (armor_model)
 		{
 			armor_model->SetDynamicLightState(pattern->dynamicLighting);
-			
-			armor = NEW CharacterArmor(this);			
-			armor->Init(armor_model,&Animation());
+
+			armor = NEW CharacterArmor(this);
+			armor->Init(armor_model, &Animation());
 		}
 	}
 
-
 	items->ReserveElements(pattern->item_descr.Size());
-	for(long i = 0; i < pattern->item_descr; i++)
+	for (long i = 0; i < pattern->item_descr; i++)
 	{
-/*
-		pattern->item_descr
-		CharacterItems::TItemDescr descr;
+		/*
+				pattern->item_descr
+				CharacterItems::TItemDescr descr;
 
-		descr.id = pattern->item_descr[i].id;
-		descr.modelName = pattern->item_descr[i].modelName;
-		descr.locatorName = pattern->item_descr[i].locatorName;
-		descr.useTrail = pattern->item_descr[i].useTrail;
-		descr.weapon_type = pattern->item_descr[i].weapon_type;
-		descr.fProbality = pattern->item_descr[i].fProbality;
-		descr.time_lie = pattern->item_descr[i].time_lie;
-		descr.itemLife = -1;				
-		descr.uniqTexture = pattern->item_descr[i].uniqTexture;
-		descr.showFlare = pattern->item_descr[i].showFlare;
-		descr.locatortoattache = pattern->item_descr[i].locatortoattache;
-		descr.attachedobject = pattern->item_descr[i].attachedobject;
-		descr.objectoffset = pattern->item_descr[i].objectoffset;
-*/
+				descr.id = pattern->item_descr[i].id;
+				descr.modelName = pattern->item_descr[i].modelName;
+				descr.locatorName = pattern->item_descr[i].locatorName;
+				descr.useTrail = pattern->item_descr[i].useTrail;
+				descr.weapon_type = pattern->item_descr[i].weapon_type;
+				descr.fProbality = pattern->item_descr[i].fProbality;
+				descr.time_lie = pattern->item_descr[i].time_lie;
+				descr.itemLife = -1;
+				descr.uniqTexture = pattern->item_descr[i].uniqTexture;
+				descr.showFlare = pattern->item_descr[i].showFlare;
+				descr.locatortoattache = pattern->item_descr[i].locatortoattache;
+				descr.attachedobject = pattern->item_descr[i].attachedobject;
+				descr.objectoffset = pattern->item_descr[i].objectoffset;
+		*/
 		items->AddItem(&pattern->item_descr[i]);
 	}
 
@@ -5468,23 +5502,23 @@ bool Character::InitFromPattern()
 	items->armor_drop_prop = pattern->armor_drop_prop * 0.01f;
 
 	items->Reset();
-			
+
 	{
 		MOSafePointerTypeEx<EffectTable> mo;
 		static const ConstString strTypeId("EffectTable");
-		mo.FindObject(&Mission(),pattern->step_effectTable,strTypeId);
+		mo.FindObject(&Mission(), pattern->step_effectTable, strTypeId);
 		step_effectTable = mo.Ptr();
-	
-		mo.FindObject(&Mission(),pattern->shoot_effectTable,strTypeId);
-		shoot_effectTable = mo.Ptr();		
+
+		mo.FindObject(&Mission(), pattern->shoot_effectTable, strTypeId);
+		shoot_effectTable = mo.Ptr();
 	}
 
 	{
 		MOSafePointerTypeEx<CharacterEffect> mo;
 		static const ConstString strTypeId("CharacterEffect");
-		mo.FindObject(&Mission(),pattern->sword_effectTable,strTypeId);
-		chrEffect = mo.Ptr();		
-	}	
+		mo.FindObject(&Mission(), pattern->sword_effectTable, strTypeId);
+		chrEffect = mo.Ptr();
+	}
 
 	//Параметры рендера
 	dynamicLighting = pattern->dynamicLighting;
@@ -5501,8 +5535,8 @@ bool Character::InitFromPattern()
 
 	//Параметры контроллера
 	ccp = null;
-	
-	if(model.scene)
+
+	if (model.scene)
 	{
 		model.scene->SetDynamicLightState(dynamicLighting);
 		items->SetDynamicLightingFlag(dynamicLighting);
@@ -5515,13 +5549,13 @@ bool Character::InitFromPattern()
 
 	if (isPlayer && !EditMode_IsOn())
 	{
-		buttonMG = NEW CharacterButtonMiniGame(this);		
+		buttonMG = NEW CharacterButtonMiniGame(this);
 		buttonMG->Init();
 
 		if (mg_params)
 		{
 			buttonMG->SetMissionTime(mg_params->GetMissionTime());
-		}			
+		}
 	}
 
 	// Вынес в Init, иначе playerNum был всегда равен 1
@@ -5530,51 +5564,50 @@ bool Character::InitFromPattern()
 		bool isMultiplayer = string::IsEqual("survival", api->Storage().GetString("Profile.Global.Difficulty", ""));
 		dword playerNum = ((PlayerController*)controller)->GetPlayerNum();
 		chrAchievements = NEW CharacterAchievements(this, playerNum, isMultiplayer);
-		chrAchievements->Init();		
+		chrAchievements->Init();
 	}*/
-		
 
 	coinModelIndex = -1;
-	fCoinAngle = Rnd(3.0f);	
+	fCoinAngle = Rnd(3.0f);
 
 	BodyParts.Empty();
 	BodyParts.AddElements(pattern->body_parts.Size());
-	for(long i = 0; i < pattern->body_parts; i++)
+	for (long i = 0; i < pattern->body_parts; i++)
 	{
-		//TPartOfMe Part;
-		//BodyParts.Add(Part);
+		// TPartOfMe Part;
+		// BodyParts.Add(Part);
 
 		BodyParts[i].pPhysBox = NULL;
 		BodyParts[i].pPhysCapsule = NULL;
 		BodyParts[i].pParticale = NULL;
 
 		BodyParts[i].ID = pattern->body_parts[i].id;
-		
-		SetModel(BodyParts[i].PartModel, pattern->body_parts[i].modelName);	
 
-		if(BodyParts[i].PartModel.scene)
+		SetModel(BodyParts[i].PartModel, pattern->body_parts[i].modelName);
+
+		if (BodyParts[i].PartModel.scene)
 		{
 			BodyParts[i].PartModel.scene->SetDynamicLightState(dynamicLighting);
 		}
 
 		BodyParts[i].LocatorName = pattern->body_parts[i].locator;
 
-		BodyParts[i].isBox = pattern->body_parts[i].isBox;	
-	}	
+		BodyParts[i].isBox = pattern->body_parts[i].isBox;
+	}
 
 	return true;
 }
 
 void Character::InitCharData()
-{	
+{
 	if (!IsPlayer())
 	{
 		logic->SetHPMultipler(Clampf(arbiter->npc_hp->Get(100.0f) * 0.01f, 0.5f, 256.0f));
-		logic->SetAttackMultipler(Clampf(arbiter->npc_damage->Get(100.0f) * 0.01f,0.5f,256.0f));		
+		logic->SetAttackMultipler(Clampf(arbiter->npc_damage->Get(100.0f) * 0.01f, 0.5f, 256.0f));
 	}
 	else
-	{		
-		logic->SetHPMultipler(Clampf(arbiter->player_live->Get(100.0f) * 0.01f,0.5f,256.0f));
+	{
+		logic->SetHPMultipler(Clampf(arbiter->player_live->Get(100.0f) * 0.01f, 0.5f, 256.0f));
 	}
 
 	logic->InitHP(logic->GetMaxHP());
@@ -5585,10 +5618,10 @@ void Character::InitCharData()
 
 	logic->SetSpawnPoint(init_pos);
 
-	actorData.ani = animation->AddAnimation("actor",init_actorani);	
-	//if(actorData.ani) events->SetAnimation(actorData.ani);
+	actorData.ani = animation->AddAnimation("actor", init_actorani);
+	// if(actorData.ani) events->SetAnimation(actorData.ani);
 
-	//Таймлайн		
+	//Таймлайн
 	actorTimeLine = null;
 	actorTimeLineName = init_actorTimeLineName;
 
@@ -5596,29 +5629,29 @@ void Character::InitCharData()
 	{
 		MOSafePointerTypeEx<ActorTimeLine> mo;
 		static const ConstString strTypeId("ActorTimeLine");
-		mo.FindObject(&Mission(),actorTimeLineName,strTypeId);	
-		actorTimeLine = mo.Ptr();	
+		mo.FindObject(&Mission(), actorTimeLineName, strTypeId);
+		actorTimeLine = mo.Ptr();
 	}
 
-	bEnableAniBlend  = init_EnableAniBlend;
+	bEnableAniBlend = init_EnableAniBlend;
 	bColideWhenActor = init_ColideWhenActor;
 	bActorMoveColider = init_bActorMoveColider;
 
-	if(controller && !EditMode_IsOn())
+	if (controller && !EditMode_IsOn())
 	{
-		if(init_aiInit.NotEmpty())
+		if (init_aiInit.NotEmpty())
 		{
-			MOSafePointerTypeEx<CharacterControllerParams> mo;		
+			MOSafePointerTypeEx<CharacterControllerParams> mo;
 			static const ConstString strTypeId("CharacterControllerParams");
-			mo.FindObject(&Mission(),init_aiInit,strTypeId);			
-			
-			if(mo.Ptr())
+			mo.FindObject(&Mission(), init_aiInit, strTypeId);
+
+			if (mo.Ptr())
 			{
 				ccp = mo.Ptr();
 
-				if(ccp->IsControllerSupport(controller->GetAIParamsName()))
+				if (ccp->IsControllerSupport(controller->GetAIParamsName()))
 				{
-					controller->SetParams(ccp);					
+					controller->SetParams(ccp);
 				}
 				else
 				{
@@ -5629,26 +5662,26 @@ void Character::InitCharData()
 			{
 				LogicDebugError("Can't set init params object \"%s\" for AI, %s", init_aiInit.c_str(), mo.Ptr() ? "invalide object type" : "object not found");
 			}
-		}		
-		
-		controller->Init();	
+		}
+
+		controller->Init();
 		controller->Reset();
 	}
 
-	//init_actrorPreview = false;		
+	// init_actrorPreview = false;
 
 	if (IsPlayer())
 	{
-		if (!greedy) greedy = BonusesManager::CreateGreedy(this);
+		if (!greedy)
+			greedy = BonusesManager::CreateGreedy(this);
 	}
 
 	if (EditMode_IsOn() && init_actrorPreview && actorTimeLine)
-	{		
-		animation->SetAnimation("actor",0.0f);
+	{
+		animation->SetAnimation("actor", 0.0f);
 		ResetActor();
-		UpdateActor(0);		
+		UpdateActor(0);
 	}
-
 
 	bVanishBody = init_VanishBody;
 
@@ -5657,36 +5690,33 @@ void Character::InitCharData()
 }
 
 bool Character::InitDefault()
-{	
-	if(!EditMode_IsOn())
-	{	
-		return false;	
+{
+	if (!EditMode_IsOn())
+	{
+		return false;
 	}
 
 	model.scene = null;
-	currentModel = model.scene;	
+	currentModel = model.scene;
 
-	//Assert(!physics);	
-	//physics = NEW CharacterPhysics(this);	
+	// Assert(!physics);
+	// physics = NEW CharacterPhysics(this);
 	chr_physics.SetOwner(this);
 	physics = &chr_physics;
 
 	Assert(!logic);
-	logic = NEW CharacterLogic(this);	
-	
+	logic = NEW CharacterLogic(this);
 
 	Assert(!events);
-	events = NEW CharacterAnimationEvents(this);	
-
+	events = NEW CharacterAnimationEvents(this);
 
 	Assert(!animation);
-	animation = NEW CharacterAnimation(this);	
+	animation = NEW CharacterAnimation(this);
 
 	Assert(!items);
-	items = NEW CharacterItems(this);		
+	items = NEW CharacterItems(this);
 
-
-	physics->Reset();	
+	physics->Reset();
 	physics->SetAy(init_ay);
 	physics->SetRadius(0.4f);
 	physics->SetHeight(1.8f);
@@ -5696,13 +5726,13 @@ bool Character::InitDefault()
 	finder->SetBoxCenter(Vector(0.0, physics->GetHeight() * 0.5f, 0.0f));
 
 	//Логический
-	//logic->Init();	
+	// logic->Init();
 	logic->Reset();
 	logic->InitMaxHP(100.0f);
-	logic->InitHP(logic->GetMaxHP());	
-			
+	logic->InitHP(logic->GetMaxHP());
+
 	Activate(init_Active);
-	Show(init_Show);	
+	Show(init_Show);
 
 	FatalityParamsId.Empty();
 	FatalityParamsData[0] = 0;
@@ -5717,7 +5747,7 @@ void Character::ReleaseFlyes()
 		return;
 
 	flyCloud->Release(false);
-	flyCloud=null;
+	flyCloud = null;
 }
 
 //Пересоздать объект
@@ -5741,7 +5771,7 @@ void Character::Restart()
 	}
 
 	if (ragdoll)
-	{		
+	{
 		ActivateRagdoll(false, 0.0f);
 	}
 
@@ -5751,15 +5781,15 @@ void Character::Restart()
 	bDeadConterOn = false;
 	DelUpdate(&Character::DeadTimer);
 
-	if(ragdoll)
+	if (ragdoll)
 	{
 		ragdoll->Release();
-		ragdoll = null;	
+		ragdoll = null;
 	}
 
 	ReleaseFlyes();
 
-	for(long i = 0; i < (int)BodyParts.Size(); i++)
+	for (long i = 0; i < (int)BodyParts.Size(); i++)
 	{
 		if (BodyParts[i].pPhysBox)
 		{
@@ -5776,26 +5806,26 @@ void Character::Restart()
 		if (BodyParts[i].pParticale)
 		{
 			BodyParts[i].pParticale->Release();
-			BodyParts[i].pParticale=NULL;
-		}		
+			BodyParts[i].pParticale = NULL;
+		}
 	}
 
 	fTimeInFatality = 0.0f;
 	actorData.chr = this;
 	bWaterSpalshBorned = false;
-	
-	showCollider = false;	
+
+	showCollider = false;
 	isHitLight = false;
 	hitLight = 0.0f;
 	deadTime = -1.0f;
 	deadBodyTime = 0.0f;
-	bombTime = -1.0f;	
-	actorTimeLine = null;	
+	bombTime = -1.0f;
+	actorTimeLine = null;
 
 	fCoindDltHgt = 0.0f;
 
 	LastCharCoin = chrcoin_none;
-	CharCoin = chrcoin_none;	
+	CharCoin = chrcoin_none;
 
 	bColideWhenActor = false;
 	bEnableAniBlend = false;
@@ -5807,13 +5837,13 @@ void Character::Restart()
 	fTimeInFatality = FATALITY_TIME;
 	/*fHitDmgMultiplayer = 1.0f;
 	fBombDmgMultiplayer = 1.0f;
-	fShootDmgMultiplayer = 1.0f;	
+	fShootDmgMultiplayer = 1.0f;
 	fRageDmgMultiplayer = 1.0f;*/
 	debugInfoType = false;
 
 	bDraw = true;
 
-	for (int i=0;i<20;i++)
+	for (int i = 0; i < 20; i++)
 	{
 		pair_minigame[i] = null;
 	}
@@ -5826,19 +5856,19 @@ void Character::Restart()
 	init_spawnpoint = 0.0f;
 	useRootBone = false;
 	set_new_ay = false;
-	
-	//fCointAltetude = 2.0f;
+
+	// fCointAltetude = 2.0f;
 
 	if (isPlayer && controller)
 	{
-		((PlayerController*)controller)->RemoveSecondWeapon();
+		((PlayerController *)controller)->RemoveSecondWeapon();
 	}
 
 	logic->Reset();
 	items->Reset();
 	physics->Reset();
 	animation->Reset();
-	InitCharData();	
+	InitCharData();
 
 	/*if (isPlayer)
 	{
@@ -5846,14 +5876,14 @@ void Character::Restart()
 	}
 
 	Release();
-	
+
 	fTimeInFatality = 0.0f;
 	actorData.chr = this;
 	bWaterSpalshBorned = false;
 	arbiter = null;
 	logic = null;
 	items = null;
-	physics = null;	
+	physics = null;
 	ragdoll = null;
 	controller = null;
 	animation = null;
@@ -5924,21 +5954,21 @@ void Character::Restart()
 
 #ifndef NO_CONSOLE
 	debugMessageShowTime = 0.0f;
-#endif	
+#endif
 
 	ReCreate();*/
 }
 
 //Освободить ресурсы
 void Character::Release()
-{	
+{
 	bWaterSpalshBorned = false;
 
 	if (ragdoll)
-	{		
+	{
 		ActivateRagdoll(false, 0.0f);
 	}
-	
+
 	if (bDeadConterOn && !bVanishBody)
 		arbiter->DelDeadBody(*this);
 
@@ -5955,11 +5985,11 @@ void Character::Release()
 	DelUpdate(&Character::DrawTrail);
 	DelUpdate(&Character::DrawFlares);
 	DelUpdate(&Character::Draw);
-	DelUpdate(&Character::DrawCoin);	
+	DelUpdate(&Character::DrawCoin);
 
 	if (logic)
 	{
-		if(!logic->IsActor())
+		if (!logic->IsActor())
 		{
 			DelUpdate(&Character::Work);
 			DelUpdate(&Character::UpdatePhysics);
@@ -5973,8 +6003,8 @@ void Character::Release()
 		armor = null;
 	}
 
-	if(controller)
-	{				
+	if (controller)
+	{
 		delete controller;
 		controller = null;
 	}
@@ -5987,7 +6017,7 @@ void Character::Release()
 
 	if (!EditMode_IsOn())
 	{
-		if(arbiter)
+		if (arbiter)
 		{
 			arbiter->Activate(this, false);
 			arbiter = null;
@@ -6001,14 +6031,14 @@ void Character::Release()
 	}
 
 	if (items)
-	{		
+	{
 		delete items;
 		items = null;
 	}
 
 	if (physics)
 	{
-		physics->Release();		
+		physics->Release();
 	}
 
 	if (greedy)
@@ -6023,10 +6053,9 @@ void Character::Release()
 	if (ragdoll)
 	{
 		ragdoll->Release();
-		ragdoll = null;	
-	}	
+		ragdoll = null;
+	}
 
-	
 	if (animation)
 	{
 		delete animation;
@@ -6041,13 +6070,13 @@ void Character::Release()
 		model.scene->Release();
 		model.scene = null;
 	}
-	
+
 	if (shadowModel.scene)
 	{
 		shadowModel.scene->SetAnimation(null);
 		shadowModel.scene->Release();
 		shadowModel.scene = null;
-	}	
+	}
 
 	if (events)
 	{
@@ -6055,7 +6084,7 @@ void Character::Release()
 		events->ResetSounds();
 		delete events;
 		events = null;
-	}	
+	}
 
 	if (buttonMG)
 	{
@@ -6075,14 +6104,14 @@ void Character::Release()
 		chrInitAI = null;
 	}
 
-	for(long i = 0; i < (int)BodyParts.Size(); i++)
+	for (long i = 0; i < (int)BodyParts.Size(); i++)
 	{
 		if (BodyParts[i].pPhysBox)
 		{
 			BodyParts[i].pPhysBox->Release();
 			BodyParts[i].pPhysBox = NULL;
 		}
-		
+
 		if (BodyParts[i].pPhysCapsule)
 		{
 			BodyParts[i].pPhysCapsule->Release();
@@ -6092,37 +6121,38 @@ void Character::Release()
 		if (BodyParts[i].pParticale)
 		{
 			BodyParts[i].pParticale->Release();
-			BodyParts[i].pParticale=NULL;
+			BodyParts[i].pParticale = NULL;
 		}
 
 		if (BodyParts[i].PartModel.scene)
 		{
 			BodyParts[i].PartModel.scene->Release();
 			BodyParts[i].PartModel.scene = null;
-		}		
+		}
 	}
 
-	//actorAnimationName = "";
+	// actorAnimationName = "";
 	BodyParts.DelAll();
 }
 
 //Установить модельку
-bool Character::SetModel(Model & model, const char * modelName)
-{	
+bool Character::SetModel(Model &model, const char *modelName)
+{
 	//Удаляем модельку
-	if(model.scene) 
+	if (model.scene)
 	{
 		model.scene->SetAnimation(null);
 		model.scene->Release();
 	}
-	model.scene = null;	
+	model.scene = null;
 
-	IGMXScene* old_model = model.scene;
+	IGMXScene *old_model = model.scene;
 	model.scene = Geometry().CreateGMX(modelName, &Animation(), &Particles(), &Sound());
 	RELEASE(old_model);
 
-	if(model.scene == null) return false;
-	
+	if (model.scene == null)
+		return false;
+
 	return true;
 }
 
@@ -6131,22 +6161,22 @@ void Character::ApplyAnimation()
 	if (logic)
 		logic->NeedStateUpdate();
 
-	//ApplyAnimationQuery(0.01f);
+	// ApplyAnimationQuery(0.01f);
 	SetUpdate(&Character::ApplyAnimationQuery, ML_DYNAMIC1);
 }
 
 void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
-{	
+{
 	if (logic)
 		logic->NeedStateUpdate();
 
-	IAnimation* anim = animation->GetCurAnimation();
+	IAnimation *anim = animation->GetCurAnimation();
 
-	if(model.scene)
+	if (model.scene)
 	{
 		model.scene->SetAnimation(anim);
 	}
-	if(shadowModel.scene)
+	if (shadowModel.scene)
 	{
 		shadowModel.scene->SetAnimation(anim);
 	}
@@ -6165,10 +6195,10 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 
 		events->ResetCollapser();
 		events->SetTimeEvent(false);
-	}	
+	}
 
 	if (anim)
-	{										
+	{
 		hips_boneIdx = anim->FindBone("|Hips_Joint");
 		spine_boneIdx = anim->FindBone("|Hips_Joint|Spine1_joint|Spine_joint");
 
@@ -6178,8 +6208,8 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 
 			if (pattern)
 			{
-				bodyparts.SetLimit(pattern->fHeadRotateLimit * PI / 180.0f,true);
-				bodyparts.SetOffset(pattern->fHeadRotateOffset * PI / 180.0f,true);
+				bodyparts.SetLimit(pattern->fHeadRotateLimit * PI / 180.0f, true);
+				bodyparts.SetOffset(pattern->fHeadRotateOffset * PI / 180.0f, true);
 			}
 		}
 		else
@@ -6195,8 +6225,8 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 
 			if (pattern)
 			{
-				bodyparts.SetLimit(pattern->fHeadRotateLimit * PI / 180.0f,true);
-				bodyparts.SetOffset(pattern->fHeadRotateOffset * PI / 180.0f,true);
+				bodyparts.SetLimit(pattern->fHeadRotateLimit * PI / 180.0f, true);
+				bodyparts.SetOffset(pattern->fHeadRotateOffset * PI / 180.0f, true);
 			}
 		}
 
@@ -6206,11 +6236,11 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 
 			if (controller)
 			{
-				if (((PlayerController*)controller)->cur_weapon_style &&
-					((PlayerController*)controller)->itemTaken &&
-					!((PlayerController*)controller)->qevent)
-				{					
-					if (((PlayerController*)controller)->cur_weapon_style->weapon_type == wp_rapire)
+				if (((PlayerController *)controller)->cur_weapon_style &&
+					((PlayerController *)controller)->itemTaken &&
+					!((PlayerController *)controller)->qevent)
+				{
+					if (((PlayerController *)controller)->cur_weapon_style->weapon_type == wp_rapire)
 					{
 						hide = false;
 					}
@@ -6219,11 +6249,11 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 
 			if (hide)
 			{
-				const char* params[2];
+				const char *params[2];
 				params[0] = "collapse";
 				params[1] = "saber_joint";
 
-				events->BoneCollapse(anim,"collapse",params,2);
+				events->BoneCollapse(anim, "collapse", params, 2);
 			}
 		}
 	}
@@ -6231,11 +6261,11 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 	{
 		hips_boneIdx = -1;
 		spine_boneIdx = -1;
-	}	
+	}
 
 	graph_changed = false;
 
-	if (dltTime>=0.0f)
+	if (dltTime >= 0.0f)
 	{
 		if (was_showed)
 		{
@@ -6248,7 +6278,7 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 		if (logic->IsActor())
 		{
 			if (act_node != -1)
-			{				
+			{
 				actorTimeLine->Goto(actorData, act_node);
 				UpdateActor(0.0f);
 
@@ -6260,37 +6290,36 @@ void _cdecl Character::ApplyAnimationQuery(float dltTime, long level)
 				UpdateActor(0);
 			}
 		}
-	}	
+	}
 
 	DelUpdate(&Character::ApplyAnimationQuery);
 }
 
 //Установить контролер
-bool Character::SetController(const ConstString & ctrlName)
+bool Character::SetController(const ConstString &ctrlName)
 {
 	static const ConstString playerId("Player");
-	if (ctrlName == playerId) 
+	if (ctrlName == playerId)
 	{
 		Registry(MG_BONUSPICKUPER);
 	}
-	else if (GetObjectID() == playerId) 
+	else if (GetObjectID() == playerId)
 	{
 		api->Trace("ERROR: SetController: Player should have Player controller");
 		return false;
 	}
 
-
 	Assert(!controller);
-	if(ctrlName.IsEmpty())
+	if (ctrlName.IsEmpty())
 	{
 		Assert(false);
 		return false;
 	}
-	for(CharacterControllerDeclarant * decl = CharacterControllerDeclarant::GetFirst(); decl; decl = decl->GetNext())
-	{		
-		if(decl->Name() == ctrlName)
+	for (CharacterControllerDeclarant *decl = CharacterControllerDeclarant::GetFirst(); decl; decl = decl->GetNext())
+	{
+		if (decl->Name() == ctrlName)
 		{
-			controller = decl->Create(*this);			
+			controller = decl->Create(*this);
 			controller->Reset();
 
 			return true;
@@ -6305,15 +6334,15 @@ bool Character::SetArbiter()
 {
 	MOSafePointer obj;
 	static const ConstString objectId("CharactersArbiter");
-	Mission().CreateObject(obj,"CharactersArbiter", objectId);
-	arbiter = (CharactersArbiter*)obj.Ptr();
-	Assert(arbiter);	
+	Mission().CreateObject(obj, "CharactersArbiter", objectId);
+	arbiter = (CharactersArbiter *)obj.Ptr();
+	Assert(arbiter);
 
 	return true;
 }
 
 //Установить сторну персонажа
-void Character::SetSide(const ConstString & side)
+void Character::SetSide(const ConstString &side)
 {
 	CharacterLogic::Side sd = CharacterLogic::s_npc;
 
@@ -6323,18 +6352,17 @@ void Character::SetSide(const ConstString & side)
 		CharacterLogic::Side side;
 	};
 
-	static const SideId sides[] = 
-	{
-		{ConstString("Enemy"), CharacterLogic::s_enemy},
-		{ConstString("Ally"), CharacterLogic::s_ally},
-		{ConstString("Ally FrFire"), CharacterLogic::s_ally_frfire},
-		{ConstString("Boss"), CharacterLogic::s_boss},
-		{ConstString("NPC"), CharacterLogic::s_npc}
-	};
+	static const SideId sides[] =
+		{
+			{ConstString("Enemy"), CharacterLogic::s_enemy},
+			{ConstString("Ally"), CharacterLogic::s_ally},
+			{ConstString("Ally FrFire"), CharacterLogic::s_ally_frfire},
+			{ConstString("Boss"), CharacterLogic::s_boss},
+			{ConstString("NPC"), CharacterLogic::s_npc}};
 
-	for(dword i = 0; i < ARRSIZE(sides); i++)
+	for (dword i = 0; i < ARRSIZE(sides); i++)
 	{
-		if(side == sides[i].id)
+		if (side == sides[i].id)
 		{
 			sd = sides[i].side;
 			break;
@@ -6347,7 +6375,7 @@ void Character::SetSide(const ConstString & side)
 //Загрузить рэгдол
 void Character::LoadRagdoll()
 {
-	if(ragdoll)
+	if (ragdoll)
 	{
 		ragdoll->Release();
 		ragdoll = null;
@@ -6357,21 +6385,21 @@ void Character::LoadRagdoll()
 	pattern->LoadRagdoll();
 }
 
-void Character::StartButtonMG(MiniGame_Desc& desc, bool auto_win)
+void Character::StartButtonMG(MiniGame_Desc &desc, bool auto_win)
 {
 	if (buttonMG)
-	{		
+	{
 		buttonMG->Start(desc, auto_win);
 	}
 }
 
-IAnimation** Character::PrepareAnim()
+IAnimation **Character::PrepareAnim()
 {
-	static IAnimation* anims[23];
+	static IAnimation *anims[23];
 
-	anims[0] = animation->GetCurAnimation();	
+	anims[0] = animation->GetCurAnimation();
 
-	Character* pair = logic->GetPairCharacter();
+	Character *pair = logic->GetPairCharacter();
 
 	if (pair)
 	{
@@ -6389,37 +6417,39 @@ IAnimation** Character::PrepareAnim()
 	else
 	{
 		anims[2] = null;
-	}	
+	}
 
-
-	for (int i=0;i<20;i++)
+	for (int i = 0; i < 20; i++)
 	{
 		if (pair_minigame[i])
 		{
-			anims[i+3] = pair_minigame[i]->animation->GetCurAnimation();
+			anims[i + 3] = pair_minigame[i]->animation->GetCurAnimation();
 		}
 		else
 		{
-			anims[i+3] = null;
-		}		
+			anims[i + 3] = null;
+		}
 	}
 
 	return anims;
 }
 
 void Character::UpdateMG(float dltTime)
-{	
-	if (!buttonMG) return;
-	
-	buttonMG->Update(dltTime,PrepareAnim(), 23);
+{
+	if (!buttonMG)
+		return;
+
+	buttonMG->Update(dltTime, PrepareAnim(), 23);
 }
 
 void Character::EndButtonMG()
 {
-	if (!buttonMG) return;
+	if (!buttonMG)
+		return;
 
-	buttonMG->ShowWidget(false);	
-	if (buttonMG->wait_end_mg) buttonMG->ActivateTriger();
+	buttonMG->ShowWidget(false);
+	if (buttonMG->wait_end_mg)
+		buttonMG->ActivateTriger();
 	if (!buttonMG->right_pressed)
 	{
 		if (buttonMG->lose_triger && !buttonMG->lose_triggered)
@@ -6432,67 +6462,67 @@ void Character::EndButtonMG()
 	buttonMG->mode = mg_disabled;
 }
 
-
-bool Character::Attack(MissionObject * obj, dword source, float hp, const Vector & center, float radius)
-{	
-	if (ragdoll || GetHP()<0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode()) return false;
+bool Character::Attack(MissionObject *obj, dword source, float hp, const Vector &center, float radius)
+{
+	if (ragdoll || GetHP() < 0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode())
+		return false;
 
 	Matrix mat(true);
 	physics->GetModelMatrix(mat);
 
-	mat.pos.y += physics->GetHeight()*0.5f;
+	mat.pos.y += physics->GetHeight() * 0.5f;
 
-	if(Box::OverlapsBoxSphere(mat, Vector(physics->GetRadius(),physics->GetHeight()*0.5f,physics->GetRadius()), center, radius))
+	if (Box::OverlapsBoxSphere(mat, Vector(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius()), center, radius))
 	{
-		logic->Hit(source, hp , "hit", 0.0f, hp, "hit", NULL, null, false);	
+		logic->Hit(source, hp, "hit", 0.0f, hp, "hit", NULL, null, false);
 
 		return true;
 	}
-	
+
 	return false;
 }
 
 //Воздействовать на объект линией
-bool Character::Attack(MissionObject * obj, dword source, float hp, const Vector & from, const Vector & to)
-{		
-	if (ragdoll || GetHP()<0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode()) return false;		
+bool Character::Attack(MissionObject *obj, dword source, float hp, const Vector &from, const Vector &to)
+{
+	if (ragdoll || GetHP() < 0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode())
+		return false;
 
 	Matrix mat(true);
 	physics->GetModelMatrix(mat);
 
 	Vector pos = mat.pos;
 
-	mat.pos.y += physics->GetHeight()*0.5f;
+	mat.pos.y += physics->GetHeight() * 0.5f;
 
-	if(Box::OverlapsBoxLine(mat, Vector(physics->GetRadius(),physics->GetHeight()*0.5f,physics->GetRadius()), from,to))
-	{		
+	if (Box::OverlapsBoxLine(mat, Vector(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius()), from, to))
+	{
 		if (source == DamageReceiver::ds_shooter)
 		{
-			IShooter* shooter = (IShooter*)obj;
+			IShooter *shooter = (IShooter *)obj;
 
 			pos += Vector(RRnd(-0.3f, 0.3f), 0.0f, RRnd(-0.3f, 0.3f));
 			arbiter->Boom(null, source, pos, shooter->GetRadius(), hp, shooter->GetPower() * RRnd(0.5f, 1.5f));
 
 			Sound().Create3D(shooter->GetCharSound(), mat.pos, _FL_);
 
-			IParticleSystem* pSys = Particles().CreateParticleSystem(shooter->GetCharParticle().c_str());
+			IParticleSystem *pSys = Particles().CreateParticleSystem(shooter->GetCharParticle().c_str());
 			if (pSys)
 			{
 				Matrix mt(true);
 				Vector dir = from - to;
 				dir.Normalize();
 
-				mt.BuildOrient(dir,Vector(0.0f,1.0f,0.0f));
+				mt.BuildOrient(dir, Vector(0.0f, 1.0f, 0.0f));
 				mt.pos = mat.pos;
 
-				pSys->Teleport(mt);				
+				pSys->Teleport(mt);
 				pSys->AutoDelete(true);
 			}
 		}
-		else
-		if (source != DamageReceiver::ds_check)
+		else if (source != DamageReceiver::ds_check)
 		{
-			logic->Hit(source, hp, "hit", 0.0f, hp, "hit", NULL, null, false);	
+			logic->Hit(source, hp, "hit", 0.0f, hp, "hit", NULL, null, false);
 		}
 
 		if (source == DamageReceiver::ds_check && !logic->IsEnemy(arbiter->GetPlayer()))
@@ -6505,21 +6535,23 @@ bool Character::Attack(MissionObject * obj, dword source, float hp, const Vector
 }
 
 //Воздействовать на объект выпуклым чехырёхугольником
-bool Character::Attack(MissionObject * obj, dword source, float hp, const Vector vrt[4])
-{		
-	if (ragdoll || GetHP()<0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode()) return false;	
+bool Character::Attack(MissionObject *obj, dword source, float hp, const Vector vrt[4])
+{
+	if (ragdoll || GetHP() < 0.1f || IsDead() || !IsActive() || logic->IsActor() || logic->IsPairMode())
+		return false;
 
 	// обработка
-	if (source != DamageReceiver::ds_sword) return false;
+	if (source != DamageReceiver::ds_sword)
+		return false;
 
 	Matrix mat(true);
 	physics->GetModelMatrix(mat);
 
-	mat.pos.y += physics->GetHeight()*0.5f;
+	mat.pos.y += physics->GetHeight() * 0.5f;
 
-	if(Box::OverlapsBoxPoly(mat, Vector(physics->GetRadius(),physics->GetHeight()*0.5f,physics->GetRadius()), vrt))
+	if (Box::OverlapsBoxPoly(mat, Vector(physics->GetRadius(), physics->GetHeight() * 0.5f, physics->GetRadius()), vrt))
 	{
-		logic->Hit(source, hp , "hit", 0.0f, hp, "hit", NULL, null, false);	
+		logic->Hit(source, hp, "hit", 0.0f, hp, "hit", NULL, null, false);
 
 		return true;
 	}
@@ -6527,19 +6559,19 @@ bool Character::Attack(MissionObject * obj, dword source, float hp, const Vector
 	return false;
 }
 
-void Character::Hit(dword source, float dmg, const char* reaction, float block_dmg, const char* blockReaction, const char * deathLink)
-{	
-	logic->Hit(source, dmg, reaction, 0.0f, block_dmg, blockReaction, deathLink, NULL, false);	
+void Character::Hit(dword source, float dmg, const char *reaction, float block_dmg, const char *blockReaction, const char *deathLink)
+{
+	logic->Hit(source, dmg, reaction, 0.0f, block_dmg, blockReaction, deathLink, NULL, false);
 }
 
 //Найти пересечение колижена и отрезка, если нет пересечения вернуть false
-bool Character::CollisionLine(const Vector & start, const Vector & end, Vector & p, Vector & n)
+bool Character::CollisionLine(const Vector &start, const Vector &end, Vector &p, Vector &n)
 {
 	IPhysicsScene::RaycastResult res;
 
-	if (Physics().Raycast(start, end, phys_mask(phys_character),&res))
+	if (Physics().Raycast(start, end, phys_mask(phys_character), &res))
 	{
-		//if (res.mtl != pmtlid_air)
+		// if (res.mtl != pmtlid_air)
 		{
 			p = res.position;
 			n = res.normal;
@@ -6548,41 +6580,41 @@ bool Character::CollisionLine(const Vector & start, const Vector & end, Vector &
 		}
 	}
 
-	return false;		
+	return false;
 }
 
-Vector Character::GetBombPosition(const Vector & from, const Vector & to, float time)
+Vector Character::GetBombPosition(const Vector &from, const Vector &to, float time)
 {
 	time = Clampf(time);
 	Vector dir = to - from;
-	float h = dir.GetLengthXZ()*0.2f;
-	dir = from + (to - from)*time + Vector(0.0f, h*sinf(time*PI), 0.0f);
+	float h = dir.GetLengthXZ() * 0.2f;
+	dir = from + (to - from) * time + Vector(0.0f, h * sinf(time * PI), 0.0f);
 	return dir;
 }
 
 //Переместить бонус
 void _cdecl Character::FlyBomb(float dltTime)
-{	
-	bombTime += flySpeed*dltTime;
-	angles += anglesRot*dltTime;
+{
+	bombTime += flySpeed * dltTime;
+	angles += anglesRot * dltTime;
 
-	if(bombTime >= 1.0f)
+	if (bombTime >= 1.0f)
 	{
 		bombTime = 1.0f;
 
 		bombLieTime -= dltTime;
 
-		if (bombLieTime<=0)		
+		if (bombLieTime <= 0)
 		{
 			bombLieTime = 0.0f;
 
 			bombTime = -1.0f;
 			DelUpdate(&Character::FlyBomb);
 
-			if(controller)
+			if (controller)
 			{
 				Vector pos = bomb.pos;
-				
+
 				if (!useBombPhysic)
 				{
 					pos = bombEnd;
@@ -6598,34 +6630,34 @@ void _cdecl Character::FlyBomb(float dltTime)
 	Matrix mtx;
 
 	if (useBombPhysic)
-	{				
+	{
 		//Отрезок перемещения
-		Vector delta = bomb.velocity*dltTime;
-		
+		Vector delta = bomb.velocity * dltTime;
+
 		//Точка на краю сферы в направлении движения в системе бонуса
 		Vector edge = bomb.velocity;
 		edge.Normalize();
 		edge *= bomb.radius;
 		//Пересчитываем скорости для следующего кадра
-		bomb.velocity.FrictionXZ(5.0f*dltTime, 0.8f);
-		bomb.velocity.y -= 18.8f*dltTime;
+		bomb.velocity.FrictionXZ(5.0f * dltTime, 0.8f);
+		bomb.velocity.y -= 18.8f * dltTime;
 		//Точка, до которой проверяем наличие препятствий
 		Vector newPos = bomb.pos + edge + delta;
-		//Render().DrawLine(bonus.pos, 0xff0000ff, newPos, 0xffff0000);
-		
+		// Render().DrawLine(bonus.pos, 0xff0000ff, newPos, 0xffff0000);
+
 		Vector cp(0.0f), cn(0.0f);
 		bool isCollision = false;
-		if(CollisionLine(bomb.pos, bomb.pos - Vector(0.0f, bomb.radius, 0.0f), cp, cn))
+		if (CollisionLine(bomb.pos, bomb.pos - Vector(0.0f, bomb.radius, 0.0f), cp, cn))
 		{
 			isCollision = true;
 			bomb.pos = cp + Vector(0.0f, bomb.radius + 0.01f, 0.0f);
 		}
-		if(isCollision || CollisionLine(bomb.pos, newPos, cp, cn))
+		if (isCollision || CollisionLine(bomb.pos, newPos, cp, cn))
 		{
 			//В зависимости от скорости решаем двигатся дальше или заснуть
 			cn.Normalize();
-			if(cn.y > 0.5f && bomb.velocity.GetLengthXZ2() < 0.045f && fabsf(bomb.velocity.y) < 0.8f)
-			{			
+			if (cn.y > 0.5f && bomb.velocity.GetLengthXZ2() < 0.045f && fabsf(bomb.velocity.y) < 0.8f)
+			{
 				bomb.isSleep = true;
 
 				/*if(controller)
@@ -6637,21 +6669,21 @@ void _cdecl Character::FlyBomb(float dltTime)
 			{
 				//Отскакиваем
 				bomb.velocity.Reflection(cn);
-				if(cn.y > 0.0f && bomb.velocity.y < 0.0f)
+				if (cn.y > 0.0f && bomb.velocity.y < 0.0f)
 				{
 					bomb.velocity.y = -bomb.velocity.y;
 				}
-				if(cn.y > 0.5f)
+				if (cn.y > 0.5f)
 				{
-					bomb.velocity.y *= (1.5f - cn.y)*0.8f;
-				}			
+					bomb.velocity.y *= (1.5f - cn.y) * 0.8f;
+				}
 			}
 		}
 		else
 		{
 			//Перемещаемся в выбраном направлении
 			bomb.pos += delta;
-		}	
+		}
 
 		mtx = Matrix(angles, bomb.pos);
 	}
@@ -6660,17 +6692,19 @@ void _cdecl Character::FlyBomb(float dltTime)
 		mtx = Matrix(angles, GetBombPosition(bombStart, bombEnd, bombTime));
 	}
 
-	if (bombTime>0 || (bombTime<=0 && bombLieTime>0)) arbiter->DrawBomb(mtx);
+	if (bombTime > 0 || (bombTime <= 0 && bombLieTime > 0))
+		arbiter->DrawBomb(mtx);
 }
 
 float Character::GetAlpha()
 {
-	return Clampf((GetDeathTime() - deadTime)/CHARACTER_BODYDISAPEAR);
+	return Clampf((GetDeathTime() - deadTime) / CHARACTER_BODYDISAPEAR);
 }
 
-void  Character::DisableTimeEvent()
-{	
-	if (!IsPlayer()) return;
+void Character::DisableTimeEvent()
+{
+	if (!IsPlayer())
+		return;
 
 	events->SetTimeEvent(false);
 
@@ -6684,13 +6718,13 @@ void  Character::DisableTimeEvent()
 		logic->pair_mg->events->SetTimeEvent(false);
 	}
 
-	for (int i=0;i<20;i++)
+	for (int i = 0; i < 20; i++)
 	{
 		if (pair_minigame[i])
 		{
 			pair_minigame[i]->events->SetTimeEvent(false);
-		}		
-	}	
+		}
+	}
 }
 
 void Character::DeattachChar()
@@ -6706,123 +6740,115 @@ void Character::DeattachChar()
 	}
 }
 
-
-
 //============================================================================================
 //Параметры инициализации
 //============================================================================================
 
-const char * Character::comment = 
-"This object representation character in game\n"
-"  Aviable commands list:\n"
-"    EnableActor - включить режим актера\n"
-"    DisableActor - выключить режим актера\n"
-"    ActorSet timeLineObject - указать актеру таймлайн\n"    
-"    Goto timeLinePointIndex - перейти на указанную точку таймлайна\n"
-"    AddItem itemID modelName locatorName [trail] - добавить предмет\n"
-"    DelItem itemID - удалить предмет\n"
-"    sethp HP [reaction] - задать HP (не в процентах)\n"
-"    sethpLimit HPLimit - задать предел в процентах ниже которого HP опуститься не может\n"
-"    changehp count [reaction] - изменить HP (не в процентах) на заданное значение\n"
-"    teleport Target - переместить персонажа в позицию цели\n"
-"    gizmorespawn Gizmo - отреспамить персонажа через указанную гизмо\n"
-"    respawn [Target] - отреспамить персонажа \n"
-"    show - показать персонажа\n"
-"    hide - спрятать персонажа\n"
-"    activate - активировать персонажа\n"
-"    deactivate - деактивировать персонажа\n"
-"    instant kill - убить персонажа, при этом происходит прятание и деактивация персонажа\n"
-"    EnableActorColider - включить колижен в режиме актера\n"
-"    DisableActorColider - выключить колижен в режиме актера\n"
-"    EnableAniBlend - включить блендинг при смене актерского графов на боевой и обратно\n"
-"    DisableAniBlend  - выключить блендинг при смене актерского графов на боевой и обратно\n"
-"    setwaypoint WaypointsName - задать вейпоинты\n"
-"    setFParams FatalityParams - задать фаталити парметры\n"
-"    settarget target - задать цель для атаки AI персонажу\n"
-"    setbombtarget target - задать цель для бомбометания\n"
-"    movelocator logic_name locator_name - переместить логический локатор\n"
-"    drawon - включить отрисовку персонажа\n"
-"    drawoff - выключить отрисовку персонажа\n"
-"    show_weapon Yes/No wp_id - показать/спрятать оружие\n"
-"    grab weapon weapon_id start_node blend_time victim - включить подбор оружия, часть данных береться из оружия жертвы\n"
-"    take weapon Wp_Type wp_model Broken_Wp_Type Broken_wp_mode start_node br_prt1 br_prt2 - включить подбор оружия\n"
-"    ragdoll - включить регдол персонажу\n"
-"    pair_minigame Character_Name,... - перечислить персов учавсвтующих в минигейме, старый список будет очищен\n"
-"    pair_minigame_add Character_Name,...\n - добавить в текущий список персов учавсвтующих в минигейме\n"
-"    collapse Colapse/Restore bone_name	- сколапсить/восстановить кость\n"
-"    actor_attach Character_Name - прикрепить персонажа (позиции будут сопадать, будут идти синхронно по графам)\n"
-"    actor_deattach - отцепить персонажа\n"
-"    hairenable Yes/No - вкл/выкл анимационный блендер волос\n"
-"    legsenable Yes/No - вкл/выкл IK ног\n"
-"    UseRootBone Yes/No - вкл/выкл использование рутовой кости при отпределении положения персонажа\n"
-"    controller [params] - послать команду AI контроллеру\n"
-"    Achievement id - отметить, что условия для ачивмента с именим id были выполнены\n"
-"    ResetAI - сбросить мысли и цель персонажу\n"
-"    GodMode - вкл/выкл режим бесмертия\n"
-" ";
-	
-
-
-
-
-
+const char *Character::comment =
+	"This object representation character in game\n"
+	"  Aviable commands list:\n"
+	"    EnableActor - включить режим актера\n"
+	"    DisableActor - выключить режим актера\n"
+	"    ActorSet timeLineObject - указать актеру таймлайн\n"
+	"    Goto timeLinePointIndex - перейти на указанную точку таймлайна\n"
+	"    AddItem itemID modelName locatorName [trail] - добавить предмет\n"
+	"    DelItem itemID - удалить предмет\n"
+	"    sethp HP [reaction] - задать HP (не в процентах)\n"
+	"    sethpLimit HPLimit - задать предел в процентах ниже которого HP опуститься не может\n"
+	"    changehp count [reaction] - изменить HP (не в процентах) на заданное значение\n"
+	"    teleport Target - переместить персонажа в позицию цели\n"
+	"    gizmorespawn Gizmo - отреспамить персонажа через указанную гизмо\n"
+	"    respawn [Target] - отреспамить персонажа \n"
+	"    show - показать персонажа\n"
+	"    hide - спрятать персонажа\n"
+	"    activate - активировать персонажа\n"
+	"    deactivate - деактивировать персонажа\n"
+	"    instant kill - убить персонажа, при этом происходит прятание и деактивация персонажа\n"
+	"    EnableActorColider - включить колижен в режиме актера\n"
+	"    DisableActorColider - выключить колижен в режиме актера\n"
+	"    EnableAniBlend - включить блендинг при смене актерского графов на боевой и обратно\n"
+	"    DisableAniBlend  - выключить блендинг при смене актерского графов на боевой и обратно\n"
+	"    setwaypoint WaypointsName - задать вейпоинты\n"
+	"    setFParams FatalityParams - задать фаталити парметры\n"
+	"    settarget target - задать цель для атаки AI персонажу\n"
+	"    setbombtarget target - задать цель для бомбометания\n"
+	"    movelocator logic_name locator_name - переместить логический локатор\n"
+	"    drawon - включить отрисовку персонажа\n"
+	"    drawoff - выключить отрисовку персонажа\n"
+	"    show_weapon Yes/No wp_id - показать/спрятать оружие\n"
+	"    grab weapon weapon_id start_node blend_time victim - включить подбор оружия, часть данных береться из оружия жертвы\n"
+	"    take weapon Wp_Type wp_model Broken_Wp_Type Broken_wp_mode start_node br_prt1 br_prt2 - включить подбор оружия\n"
+	"    ragdoll - включить регдол персонажу\n"
+	"    pair_minigame Character_Name,... - перечислить персов учавсвтующих в минигейме, старый список будет очищен\n"
+	"    pair_minigame_add Character_Name,...\n - добавить в текущий список персов учавсвтующих в минигейме\n"
+	"    collapse Colapse/Restore bone_name	- сколапсить/восстановить кость\n"
+	"    actor_attach Character_Name - прикрепить персонажа (позиции будут сопадать, будут идти синхронно по графам)\n"
+	"    actor_deattach - отцепить персонажа\n"
+	"    hairenable Yes/No - вкл/выкл анимационный блендер волос\n"
+	"    legsenable Yes/No - вкл/выкл IK ног\n"
+	"    UseRootBone Yes/No - вкл/выкл использование рутовой кости при отпределении положения персонажа\n"
+	"    controller [params] - послать команду AI контроллеру\n"
+	"    Achievement id - отметить, что условия для ачивмента с именим id были выполнены\n"
+	"    ResetAI - сбросить мысли и цель персонажу\n"
+	"    GodMode - вкл/выкл режим бесмертия\n"
+	" ";
 
 MOP_BEGINLISTCG(Character, "Character", '1.00', 100, Character::comment, "Character")
 
-	MOP_ENUMBEG("InitState")
-		MOP_ENUMELEMENT("none")
-		MOP_ENUMELEMENT("waiting")
-		MOP_ENUMELEMENT("wait and alarm")
-		MOP_ENUMELEMENT("patrolling")
-		MOP_ENUMELEMENT("patrolling and alarm")
-	MOP_ENUMEND
+MOP_ENUMBEG("InitState")
+MOP_ENUMELEMENT("none")
+MOP_ENUMELEMENT("waiting")
+MOP_ENUMELEMENT("wait and alarm")
+MOP_ENUMELEMENT("patrolling")
+MOP_ENUMELEMENT("patrolling and alarm")
+MOP_ENUMEND
 
-	//Паттерн	
-	MOP_STRING("Pattern Name", "")
-	MOP_POSITION("Position", Vector(0.0f))
-	MOP_ANGLESEX("Angle", Vector(0.0f), Vector(0.0f, -4.0f*PI, 0.0f), Vector(0.0f, 4.0f*PI, 0.0f))	
-	
-	MOP_BOOL("Auto spawn point", true)
-	MOP_POSITION("Spawn point", Vector(0.0f))	
+//Паттерн
+MOP_STRING("Pattern Name", "")
+MOP_POSITION("Position", Vector(0.0f))
+MOP_ANGLESEX("Angle", Vector(0.0f), Vector(0.0f, -4.0f * PI, 0.0f), Vector(0.0f, 4.0f * PI, 0.0f))
 
-	MOP_STRING("Actor animation", "")
-	MOP_STRING("Actor time line", "")
-	MOP_BOOL("Preview Actor timeline", false)
-	MOP_BOOL("Blend AI and Act Ani", false)
-	MOP_BOOL("Colide when Actor", false)
-	MOP_BOOL("Move colider when Actor", false)
-	MOP_BOOL("Use root bone", false)
-		
-	MOP_FLOATEX("Distance to drop shadow", 0.0f, 0.0f, 1000.0f);
+MOP_BOOL("Auto spawn point", true)
+MOP_POSITION("Spawn point", Vector(0.0f))
 
-	MOP_STRING("AI params", "")
+MOP_STRING("Actor animation", "")
+MOP_STRING("Actor time line", "")
+MOP_BOOL("Preview Actor timeline", false)
+MOP_BOOL("Blend AI and Act Ani", false)
+MOP_BOOL("Colide when Actor", false)
+MOP_BOOL("Move colider when Actor", false)
+MOP_BOOL("Use root bone", false)
 
-	MOP_ENUM("InitState", "AI InitState")	
-	MOP_STRING("AI InitNode", "")
-	MOP_FLOATEX("AI Argo Dist", 7.0f, 1.0f, 1024.0f)
-	MOP_FLOATEX("AI Alarm Dist", 7.0f, 1.0f, 1024.0f)
-	MOP_FLOATEX("AI Time To Alarm", 0.5f, 0.01f, 64.0f)	
-	
-	MOP_FLOATEX("AI Hear Dist", 4.0f, 0.01f, 64.0f)	
-	MOP_FLOATEX("AI Sector Angle", 45.0f, 0.01f, 90.0f)	
-	
-	MOP_ARRAYBEG("AI Patrol Point", 0, 1000)
-	    MOP_POSITION("Point",0.0f)
-		MOP_FLOATEX("Wait Time", -1.0f, -1.0f, 64.0f)
-		MOP_STRING("Wait Node", "")
-		MOP_ANGLES("Angels",0.0f)		
-	MOP_ARRAYEND		
+MOP_FLOATEX("Distance to drop shadow", 0.0f, 0.0f, 1000.0f);
 
-	MOP_STRING("MiniGame Params", "")
-	MOP_STRING("Common MiniGame Params", "")
-	MOP_BOOL("Vanish Body", false)
+MOP_STRING("AI params", "")
 
-	MOP_STRING("Bomb explosion pattern", "")
+MOP_ENUM("InitState", "AI InitState")
+MOP_STRING("AI InitNode", "")
+MOP_FLOATEX("AI Argo Dist", 7.0f, 1.0f, 1024.0f)
+MOP_FLOATEX("AI Alarm Dist", 7.0f, 1.0f, 1024.0f)
+MOP_FLOATEX("AI Time To Alarm", 0.5f, 0.01f, 64.0f)
 
-	MOP_BOOLC("Sea reflection", false, "Character can reflect in sea")
-	MOP_BOOLC("Sea refraction", false, "Character can refract in sea")
-				
-	MOP_BOOL("Show", true)
-	MOP_BOOL("Active", true)
-	
+MOP_FLOATEX("AI Hear Dist", 4.0f, 0.01f, 64.0f)
+MOP_FLOATEX("AI Sector Angle", 45.0f, 0.01f, 90.0f)
+
+MOP_ARRAYBEG("AI Patrol Point", 0, 1000)
+MOP_POSITION("Point", 0.0f)
+MOP_FLOATEX("Wait Time", -1.0f, -1.0f, 64.0f)
+MOP_STRING("Wait Node", "")
+MOP_ANGLES("Angels", 0.0f)
+MOP_ARRAYEND
+
+MOP_STRING("MiniGame Params", "")
+MOP_STRING("Common MiniGame Params", "")
+MOP_BOOL("Vanish Body", false)
+
+MOP_STRING("Bomb explosion pattern", "")
+
+MOP_BOOLC("Sea reflection", false, "Character can reflect in sea")
+MOP_BOOLC("Sea refraction", false, "Character can refract in sea")
+
+MOP_BOOL("Show", true)
+MOP_BOOL("Active", true)
+
 MOP_ENDLIST(Character)
