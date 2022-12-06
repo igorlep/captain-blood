@@ -60,6 +60,7 @@ public:
 
 class PreviewService : public IPreviewService
 {
+	/// @brief 
 	Character *chr; IAnimation *animation;
 
 	Matrix mat;
