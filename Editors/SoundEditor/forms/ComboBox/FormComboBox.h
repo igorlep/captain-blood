@@ -5,6 +5,7 @@
 
 class FormComboBoxListModal;
 
+/// @brief пробное комментария
 class FormComboBox : public GUIControl
 {
 	struct Item
